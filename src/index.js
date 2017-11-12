@@ -1,6 +1,4 @@
 import { createSelector } from 'reselect';
-import { objectHash } from 'object-hash';
-
 const _registered = {};
 let _getState = null;
 let _allSelectors = new Set();
