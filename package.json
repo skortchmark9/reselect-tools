@@ -4,7 +4,6 @@
   "description": "Selector Debugging Tools for Reselect.",
   "main": "lib/index.js",
   "jsnext:main": "es/index.js",
-  "typings": "lib/index.d.ts",
   "files": [
     "lib",
     "src",
@@ -23,8 +22,7 @@
     "lint": "eslint --fix src test",
     "prepublish": "npm run compile",
     "test": "better-npm-run test",
-    "test:cov": "better-npm-run test:cov",
-    "test:typescript": "better-npm-run test:typescript"
+    "test:cov": "better-npm-run test:cov"
   },
   "betterScripts": {
     "test": {
@@ -40,11 +38,8 @@
         "COVERAGE": "true"
       }
     },
-    "test:typescript": {
-      "command": "typings-tester --dir typescript_test"
-    },
     "compile:commonjs": {
-      "command": "babel -d lib/ src/ && ncp ./src/index.d.ts ./lib/index.d.ts",
+      "command": "babel -d lib/ src/",
       "env": {
         "NODE_ENV": "commonjs"
       }
@@ -91,8 +86,6 @@
     "mocha": "^2.2.5",
     "ncp": "^2.0.0",
     "nyc": "^6.4.0",
-    "typescript": "^2.1.4",
-    "typings-tester": "^0.2.0",
     "uglify-js": "^3.0.20"
   },
   "dependencies": {
