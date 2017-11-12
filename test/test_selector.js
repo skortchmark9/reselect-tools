@@ -59,7 +59,7 @@ suite('createSelectorWithDependencies', () => {
 
     assert.equal(selector.dependencies[0].dependencies[0], func1);
   });
-})
+});
 
 suite('registerSelectors', () => {
 
@@ -102,7 +102,7 @@ suite('registerSelectors', () => {
     registered = registerSelectors({ baz });
     assert.equal(Object.keys(registered).length, 3);
   });
-})
+});
 
 suite('checkSelector', () => {
 

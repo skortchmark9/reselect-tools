@@ -50,7 +50,7 @@ export function checkSelector(selector) {
     throw error(`Selector ${selector} is not a function`);
   }
 
-  const { dependencies = [] } = selector;
+  const dependencies = selector.dependencies || [];
   const recomputations = selector.recomputations ? selector.recomputations() : 'N/A/';
 
   const ret = { dependencies, recomputations };
