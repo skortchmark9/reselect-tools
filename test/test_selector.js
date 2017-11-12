@@ -182,7 +182,21 @@ suite('checkSelector', () => {
       recomputations: 2
     });
   });
-})
+
+  test("it allows you to pass in a string name of a selector if you've registered", () => {
+    const foo = (state) => state.foo;
+    const bar = createSelectorWithDependencies(foo, (foo) => foo + 1);
+    registerSelectors({ bar });
+    getStateWith(() => ({foo: 1}));
+    const checked = checkSelector('bar');
+    assert.deepEqual(checked, {
+      dependencies: [ foo ],
+      inputs: [1],
+      output: 2,
+      recomputations: 0,
+    });
+  });
+});
 
 suite('selectorGraph', () => {
   function createMockSelectors() {

@@ -44,6 +44,10 @@ export function reset() {
 
 
 export function checkSelector(selector) {
+  if (typeof selector === 'string') {
+    selector = _registered[selector];
+  }
+
   if (!_isFunction(selector)) {
     throw error(`Selector ${selector} is not a function`);
   }
@@ -77,13 +81,13 @@ function _sumString(str) {
   return Array.from(str.toString()).reduce((sum, char) => char.charCodeAt(0) + sum, 0);
 }
 
-const defaultSelectorKey = (selector) => {
+const defaultSelectorKey = (selector, registry) => {
   if (selector.name) { // if its a vanilla function, it will have a name.
     return selector.name;
   }
 
-  for (let key of Object.keys(_registered)) {
-    if (_registered[key] === selector) {
+  for (let key of Object.keys(registry)) {
+    if (registry[key] === selector) {
       return key;
     }
   }
@@ -98,7 +102,7 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
     const traversedDependencies = new Set();
 
     const addToGraph = (selector) => {
-      const name = selectorKey(selector);
+      const name = selectorKey(selector, _registered);
       graph.nodes[name] = {
         recomputations: selector.recomputations ? selector.recomputations() : 'N/A',
         name,
@@ -110,7 +114,7 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
       }
       dependencies.forEach((dependency) => {
         addToGraph(dependency);
-        graph.edges.push({ from: name, to: selectorKey(dependency) });
+        graph.edges.push({ from: name, to: selectorKey(dependency, _registered) });
       });
       traversedDependencies.add(name);
     }
