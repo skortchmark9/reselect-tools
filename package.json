@@ -1,7 +1,7 @@
 {
-  "name": "reselect",
-  "version": "3.0.1",
-  "description": "Selectors for Redux.",
+  "name": "reselect-tools",
+  "version": "0.0.1",
+  "description": "Selector Debugging Tools for Reselect.",
   "main": "lib/index.js",
   "jsnext:main": "es/index.js",
   "typings": "lib/index.d.ts",
@@ -12,7 +12,7 @@
     "es"
   ],
   "bugs": {
-    "url": "https://github.com/reactjs/reselect/issues"
+    "url": "https://github.com/TODO"
   },
   "scripts": {
     "compile:commonjs": "better-npm-run compile:commonjs",
@@ -57,18 +57,15 @@
     }
   },
   "keywords": [
-    "react",
-    "redux"
+    "redux",
+    "reselect"
   ],
   "authors": [
-    "Lee Bannard",
-    "Robert Binna",
-    "Martijn Faassen",
-    "Philip Spitzlinger"
+    "Sam Kortchmar"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/reactjs/reselect.git"
+    "url": "https://github.com/skortchmark9/reselect-tools"
   },
   "license": "MIT",
   "devDependencies": {
@@ -90,7 +87,6 @@
     "coveralls": "^2.11.4",
     "eslint": "^2.11",
     "eslint-plugin-react": "^5.1.1",
-    "lodash.memoize": "^4.1.0",
     "mkdirp": "^0.5.1",
     "mocha": "^2.2.5",
     "ncp": "^2.0.0",
@@ -98,5 +94,8 @@
     "typescript": "^2.1.4",
     "typings-tester": "^0.2.0",
     "uglify-js": "^3.0.20"
+  },
+  "dependencies": {
+    "reselect": "^3.0.1"
   }
 }

@@ -210,12 +210,32 @@ suite('selectorGraph', () => {
 
   test('it outputs a selector graph', () => {
     const selectors = createMockSelectors();
-    registerSelectors(selectors);
-    const graph = selectorGraph();
-
-    const { edges, nodes } = graph;
+    const { edges, nodes } = selectorGraph();
     assert.equal(Object.keys(nodes).length, Object.keys(selectors).length);
     assert.equal(edges.length, 9);
+  });
+
+  test('it names the nodes based on their string name by default', () => {
+    const selectors = createMockSelectors();
+    const { edges, nodes } = selectorGraph();
+
+    // comes from func.name for top-level vanilla selector functions.
+    assert.equal(nodes['data$'].recomputations, 'N/A');
+  });
+
+  test("doesn't duplicate nodes if they are different", () => {
+    const foo$ = (state) => state.foo; // node1
+    const select = (state) => 1;
+    const selector1 = createSelectorWithDependencies(foo$, select); // node 2
+    const selector2 = createSelectorWithDependencies(select); // node 3
+    const { nodes } = selectorGraph();
+    assert.equal(Object.keys(nodes).length, 3);
+  });
+
+  test('it names the nodes based on entries in the registry if they are there', () => {
+    const selectors = createMockSelectors();
+    registerSelectors(selectors);
+    const { edges, nodes } = selectorGraph();
 
     const expectedEdges = [ 
       { from: 'users$', to: 'data$' },
@@ -229,13 +249,5 @@ suite('selectorGraph', () => {
       { from: 'booya$', to: 'currentUser$' }
     ]
     assert.sameDeepMembers(edges, expectedEdges);
-  });
-
-  test('it names the nodes based on their string name by default', () => {
-
-  });
-
-  test('it names the nodes based on entries in the registry if they are there', () => {
-
   })
 });
