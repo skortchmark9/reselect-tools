@@ -1,4 +1,5 @@
 import chai from 'chai'
+import { createSelector } from 'reselect'
 import {  
   createSelectorWithDependencies,
   registerSelectors,
@@ -241,23 +242,6 @@ suite('selectorGraph', () => {
     assert.equal(edges.length, 9)
   })
 
-  test('it names the nodes based on their string name by default', () => {
-    createMockSelectors()
-    const { nodes } = selectorGraph()
-
-    // comes from func.name for top-level vanilla selector functions.
-    assert.equal(nodes['data$'].recomputations, 'N/A')
-  })
-
-  test("doesn't duplicate nodes if they are different", () => {
-    const foo$ = (state) => state.foo // node1
-    const select = () => 1
-    createSelectorWithDependencies(foo$, select) // node 2
-    createSelectorWithDependencies(select) // node 3
-    const { nodes } = selectorGraph()
-    assert.equal(Object.keys(nodes).length, 3)
-  })
-
   test("allows you to pass in a different selector key function", () => {
     function idxSelectorKey(selector, registry) {
       const sorted = Object.keys(registry).sort();
@@ -272,25 +256,53 @@ suite('selectorGraph', () => {
     registerSelectors(selectors)
     const { nodes } = selectorGraph(idxSelectorKey)
     assert.equal(Object.keys(nodes).length, 9);
-
   });
 
-  test('it names the nodes based on entries in the registry if they are there', () => {
-    const selectors = createMockSelectors()
-    registerSelectors(selectors)
-    const { edges } = selectorGraph()
+  suite("defaultSelectorKey", () => {
+    test('it names the nodes based on their string name by default', () => {
+      createMockSelectors()
+      const { nodes } = selectorGraph()
 
-    const expectedEdges = [ 
-      { from: 'users$', to: 'data$' },
-      { from: 'pets$', to: 'data$' },
-      { from: 'currentUser$', to: 'ui$' },
-      { from: 'currentUser$', to: 'users$' },
-      { from: 'currentUserPets$', to: 'currentUser$' },
-      { from: 'currentUserPets$', to: 'pets$' },
-      { from: 'thingy$', to: 'random$' },
-      { from: 'booya$', to: 'thingy$' },
-      { from: 'booya$', to: 'currentUser$' }
-    ]
-    assert.sameDeepMembers(edges, expectedEdges)
-  })
+      // comes from func.name for top-level vanilla selector functions.
+      assert.equal(nodes['data$'].recomputations, 'N/A')
+    })
+
+    test("doesn't duplicate nodes if they are different", () => {
+      const foo$ = (state) => state.foo // node1
+      const select = () => 1
+      createSelectorWithDependencies(foo$, select) // node 2
+      createSelectorWithDependencies(select) // node 3
+      const { nodes } = selectorGraph()
+      assert.equal(Object.keys(nodes).length, 3)
+    })
+
+    test('it names the nodes based on entries in the registry if they are there', () => {
+      const selectors = createMockSelectors()
+      registerSelectors(selectors)
+      const { edges } = selectorGraph()
+
+      const expectedEdges = [ 
+        { from: 'users$', to: 'data$' },
+        { from: 'pets$', to: 'data$' },
+        { from: 'currentUser$', to: 'ui$' },
+        { from: 'currentUser$', to: 'users$' },
+        { from: 'currentUserPets$', to: 'currentUser$' },
+        { from: 'currentUserPets$', to: 'pets$' },
+        { from: 'thingy$', to: 'random$' },
+        { from: 'booya$', to: 'thingy$' },
+        { from: 'booya$', to: 'currentUser$' }
+      ]
+      assert.sameDeepMembers(edges, expectedEdges)
+    })
+
+    test("it interops with regular reselect selectors", () => {
+      const foo$ = (state) => state.foo
+      const bar$ = createSelector(foo$, (foo) => foo + 1)
+      createSelectorWithDependencies(foo$, bar$, (foo, bar) => foo + bar)
+      const { nodes , edges } = selectorGraph();
+      assert.equal(Object.keys(nodes).length, 3);
+      assert.equal(Object.keys(edges).length, 2);
+
+    });
+  });
 })
