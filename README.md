@@ -13,11 +13,11 @@ I'll work on this README!
 
 MIT
 
-[build-badge]: https://img.shields.io/travis/reactjs/reselect/master.svg?style=flat-square
-[build]: https://travis-ci.org/reactjs/reselect
+[build-badge]: https://api.travis-ci.org/skortchmark9/reselect-tools.svg?branch=master
+[build]: https://travis-ci.org/skortchmark9/reselect-tools
 
 [npm-badge]: https://img.shields.io/npm/v/reselect.svg?style=flat-square
 [npm]: https://www.npmjs.org/package/reselect
 
-[coveralls-badge]: https://img.shields.io/coveralls/reactjs/reselect/master.svg?style=flat-square
-[coveralls]: https://coveralls.io/github/reactjs/reselect
+[coveralls-badge]: https://coveralls.io/repos/github/skortchmark9/reselect-tools/badge.svg?branch=master
+[coveralls]: https://coveralls.io/github/skortchmark9/reselect-tools?branch=master
