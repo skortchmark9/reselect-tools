@@ -6,7 +6,9 @@
     "transform-es2015-function-name",
     "transform-es2015-parameters",
     "transform-es2015-spread",
-    "transform-es2015-template-literals"
+    "transform-es2015-template-literals",
+    "transform-es2015-shorthand-properties",
+    "transform-es2015-for-of"
   ],
   "env": {
     "commonjs": {
@@ -23,7 +25,6 @@
     "test": {
       "plugins": [
         ["transform-es2015-modules-commonjs", { "loose": true }],
-        "transform-es2015-shorthand-properties"
       ]
     }
   }
