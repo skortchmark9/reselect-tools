@@ -15,7 +15,7 @@
   },
   "scripts": {
     "compile:commonjs": "better-npm-run compile:commonjs",
-    "compile:umdmin": "uglifyjs dist/reselect.js -mt -o dist/reselect.min.js",
+    "compile:umdmin": "uglifyjs dist/reselect-tools.js -mt -o dist/reselect-tools.min.js",
     "compile:umd": "better-npm-run compile:umd",
     "compile:es": "babel -d es/ src/",
     "compile": "npm run compile:commonjs && npm run compile:umd && npm run compile:umdmin && npm run compile:es",
@@ -45,7 +45,7 @@
       }
     },
     "compile:umd": {
-      "command": "mkdirp dist/ && babel -o dist/reselect.js src/",
+      "command": "mkdirp dist/ && babel -o dist/reselect-tools.js src/",
       "env": {
         "NODE_ENV": "umd"
       }
