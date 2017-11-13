@@ -10,7 +10,13 @@
     },
     "umd": {
       "plugins": [
-        ["transform-es2015-modules-umd", { "loose": true }]
+        ["transform-es2015-modules-umd",
+        {
+          "loose": true,
+          "globals": {
+            'reselect': 'Reselect'
+          }
+        }]
       ],
       "moduleId": "ReselectTools"
     },
