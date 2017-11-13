@@ -258,6 +258,23 @@ suite('selectorGraph', () => {
     assert.equal(Object.keys(nodes).length, 3)
   })
 
+  test("allows you to pass in a different selector key function", () => {
+    function idxSelectorKey(selector, registry) {
+      const sorted = Object.keys(registry).sort();
+      for (let i = 0; i < sorted.length; i++) {
+        if (registry[sorted[i]] === selector) {
+          return i;
+        }
+      }
+    }
+
+    const selectors = createMockSelectors()
+    registerSelectors(selectors)
+    const { nodes } = selectorGraph(idxSelectorKey)
+    assert.equal(Object.keys(nodes).length, 9);
+
+  });
+
   test('it names the nodes based on entries in the registry if they are there', () => {
     const selectors = createMockSelectors()
     registerSelectors(selectors)
