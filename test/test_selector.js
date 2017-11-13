@@ -196,6 +196,18 @@ suite('checkSelector', () => {
       recomputations: 0
     })
   })
+
+  test("it throws if you try to check a non-existent selector", () => {
+    const foo = (state) => state.foo
+    const bar = createSelectorWithDependencies(foo, (foo) => foo + 1)
+    registerSelectors({ bar })
+    assert.throws(() => checkSelector('baz'));
+  });
+
+  test("it throws if you try to check a non-function", () => {
+    assert.throws(() => checkSelector(1));
+  });
+
 })
 
 suite('selectorGraph', () => {

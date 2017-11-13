@@ -75,7 +75,7 @@ function _sumString(str) {
 }
 
 const defaultSelectorKey = (selector, registry) => {
-  if (selector.name) { // if its a vanilla function, it will have a name.
+  if (selector.name) { // if it's a vanilla function, it will have a name.
     return selector.name
   }
 
