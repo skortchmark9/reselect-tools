@@ -1,6 +1,6 @@
 {
   "name": "reselect-tools",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Selector Debugging Tools for Reselect.",
   "main": "lib/index.js",
   "jsnext:main": "es/index.js",
@@ -22,7 +22,8 @@
     "lint": "eslint --fix src test",
     "prepublish": "npm run compile",
     "test": "better-npm-run test",
-    "test:cov": "better-npm-run test:cov"
+    "test:cov": "better-npm-run test:cov",
+    "example": "opn http://localhost:9080/examples/demo.html && static-server"
   },
   "betterScripts": {
     "test": {
@@ -74,11 +75,11 @@
     "codecov.io": "^0.1.6",
     "coveralls": "^2.11.4",
     "eslint": "^2.11",
-    "eslint-plugin-react": "^5.1.1",
     "mkdirp": "^0.5.1",
     "mocha": "^2.2.5",
     "ncp": "^2.0.0",
     "nyc": "^6.4.0",
+    "opn-cli": "^3.1.0",
     "uglify-js": "^3.0.20"
   },
   "dependencies": {

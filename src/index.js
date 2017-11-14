@@ -42,12 +42,12 @@ export function reset() {
 
 
 export function checkSelector(selector) {
-  if (typeof selector === 'string') {
-    selector = _registered[selector]
+  if (typeof selector === 'string' && _isFunction(_registered[selector])) {
+    selector = _registered[selector];
   }
 
   if (!_isFunction(selector)) {
-    throw new Error(`Selector ${selector} is not a function`)
+    throw new Error(`Selector ${selector} is not a function...has it been registered?`)
   }
 
   const dependencies = selector.dependencies || []
