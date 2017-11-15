@@ -127,7 +127,7 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
 }
 
 // hack for devtools
-/* istanbul ignore next */
+/* istanbul ignore if */
 if (typeof window !== 'undefined') {
   window.__RESELECT_TOOLS__ = {
     selectorGraph,
