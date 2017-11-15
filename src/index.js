@@ -42,18 +42,29 @@ export function reset() {
 
 
 export function checkSelector(selector) {
+
+  let isRegistered = false
   if (typeof selector === 'string' && _isFunction(_registered[selector])) {
     selector = _registered[selector]
+    isRegistered = true
   }
 
   if (!_isFunction(selector)) {
     throw new Error(`Selector ${selector} is not a function...has it been registered?`)
   }
 
+  if (!isRegistered) {
+    Object.keys(_registered).forEach((key) => {
+      if (_registered[key] === selector) {
+        isRegistered = true
+      }
+    })
+  }
+
   const dependencies = selector.dependencies || []
   const recomputations = selector.recomputations ? selector.recomputations() : null
 
-  const ret = { dependencies, recomputations }
+  const ret = { dependencies, recomputations, isRegistered }
   if (_getState) {
     const state = _getState()
     const inputs = dependencies.map((parentSelector) => parentSelector(state))
@@ -95,9 +106,12 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
   const traversedDependencies = new Set()
 
   const addToGraph = (selector) => {
+    if (graph.nodes[name]) return
     const name = selectorKey(selector, _registered)
+    const { recomputations, isRegistered } = checkSelector(selector)
     graph.nodes[name] = {
-      recomputations: selector.recomputations ? selector.recomputations() : 'N/A',
+      recomputations,
+      isRegistered,
       name
     }
 

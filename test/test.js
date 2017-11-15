@@ -162,7 +162,8 @@ suite('checkSelector', () => {
       dependencies: [ foo ],
       inputs: [ { baz : 1 } ],
       output: 1,
-      recomputations: 1
+      recomputations: 1,
+      isRegistered: false
     })
 
     const newState = {
@@ -180,7 +181,8 @@ suite('checkSelector', () => {
       dependencies: [ foo ],
       inputs: [ { baz : 2 } ],
       output: 2,
-      recomputations: 2
+      recomputations: 2,
+      isRegistered: false
     })
   })
 
@@ -194,21 +196,33 @@ suite('checkSelector', () => {
       dependencies: [ foo ],
       inputs: [ 1 ],
       output: 2,
-      recomputations: 0
+      recomputations: 0,
+      isRegistered: true
     })
   })
 
-  test("it throws if you try to check a non-existent selector", () => {
+  test('it throws if you try to check a non-existent selector', () => {
     const foo = (state) => state.foo
     const bar = createSelectorWithDependencies(foo, (foo) => foo + 1)
     registerSelectors({ bar })
-    assert.throws(() => checkSelector('baz'));
-  });
+    assert.throws(() => checkSelector('baz'))
+  })
 
-  test("it throws if you try to check a non-function", () => {
-    assert.throws(() => checkSelector(1));
-  });
+  test('it throws if you try to check a non-function', () => {
+    assert.throws(() => checkSelector(1))
+  })
 
+  test('it tells you whether or not a selector has been registered', () => {
+    const one$ = () => 1
+    const two$ = createSelectorWithDependencies(one$, (one) => one + 1)
+    registerSelectors({ one$ })
+
+    assert.equal(checkSelector(() => 1).isRegistered, false)
+
+    assert.equal(checkSelector(two$).isRegistered, false)
+    registerSelectors({ two$ })
+    assert.equal(checkSelector(two$).isRegistered, true)
+  })
 })
 
 suite('selectorGraph', () => {
@@ -242,12 +256,12 @@ suite('selectorGraph', () => {
     assert.equal(edges.length, 9)
   })
 
-  test("allows you to pass in a different selector key function", () => {
+  test('allows you to pass in a different selector key function', () => {
     function idxSelectorKey(selector, registry) {
-      const sorted = Object.keys(registry).sort();
+      const sorted = Object.keys(registry).sort()
       for (let i = 0; i < sorted.length; i++) {
         if (registry[sorted[i]] === selector) {
-          return i;
+          return i
         }
       }
     }
@@ -255,16 +269,26 @@ suite('selectorGraph', () => {
     const selectors = createMockSelectors()
     registerSelectors(selectors)
     const { nodes } = selectorGraph(idxSelectorKey)
-    assert.equal(Object.keys(nodes).length, 9);
-  });
+    assert.equal(Object.keys(nodes).length, 9)
+  })
 
-  suite("defaultSelectorKey", () => {
+  suite('defaultSelectorKey', () => {
     test('it names the nodes based on their string name by default', () => {
       createMockSelectors()
       const { nodes } = selectorGraph()
 
       // comes from func.name for top-level vanilla selector functions.
-      assert.equal(nodes['data$'].recomputations, 'N/A')
+      assert.equal(nodes['data$'].recomputations, null)
+    })
+
+    test('it falls back to toString on anonymous functions', () => {
+      createSelectorWithDependencies(() => 1, (one) => one + 1)
+      const { nodes } = selectorGraph()
+      const keys = Object.keys(nodes)
+      assert.equal(keys.length, 2)
+      for (let key of keys) {
+        assert.include(key, '1')
+      }
     })
 
     test("doesn't duplicate nodes if they are different", () => {
@@ -295,14 +319,13 @@ suite('selectorGraph', () => {
       assert.sameDeepMembers(edges, expectedEdges)
     })
 
-    test("it interops with regular reselect selectors", () => {
+    test('it interops with regular reselect selectors', () => {
       const foo$ = (state) => state.foo
       const bar$ = createSelector(foo$, (foo) => foo + 1)
       createSelectorWithDependencies(foo$, bar$, (foo, bar) => foo + bar)
-      const { nodes , edges } = selectorGraph();
-      assert.equal(Object.keys(nodes).length, 3);
-      assert.equal(Object.keys(edges).length, 2);
-
-    });
-  });
+      const { nodes , edges } = selectorGraph()
+      assert.equal(Object.keys(nodes).length, 3)
+      assert.equal(Object.keys(edges).length, 2)
+    })
+  })
 })
