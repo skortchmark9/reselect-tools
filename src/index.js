@@ -131,3 +131,11 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
   }
   return graph
 }
+
+/* istanbul ignore next hack for devtools*/
+if (typeof window !== 'undefined') {
+  window.__RESELECT_TOOLS__ = {
+    selectorGraph,
+    checkSelector
+  }
+}
