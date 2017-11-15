@@ -103,11 +103,9 @@ const defaultSelectorKey = (selector, registry) => {
 
 export function selectorGraph(selectorKey = defaultSelectorKey) {
   const graph = { nodes: {}, edges: [] }
-  const traversedDependencies = new Set()
-
   const addToGraph = (selector) => {
-    if (graph.nodes[name]) return
     const name = selectorKey(selector, _registered)
+    if (graph.nodes[name]) return
     const { recomputations, isRegistered } = checkSelector(selector)
     graph.nodes[name] = {
       recomputations,
@@ -116,14 +114,10 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
     }
 
     let dependencies = selector.dependencies || []
-    if (traversedDependencies.has(name)) { // Don't re-add.
-      dependencies = []
-    }
     dependencies.forEach((dependency) => {
       addToGraph(dependency)
       graph.edges.push({ from: name, to: selectorKey(dependency, _registered) })
     })
-    traversedDependencies.add(name)
   }
 
   for (let selector of _allSelectors) {
@@ -132,7 +126,8 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
   return graph
 }
 
-/* istanbul ignore next hack for devtools*/
+// hack for devtools
+/* istanbul ignore next */
 if (typeof window !== 'undefined') {
   window.__RESELECT_TOOLS__ = {
     selectorGraph,

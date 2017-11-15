@@ -272,6 +272,32 @@ suite('selectorGraph', () => {
     assert.equal(Object.keys(nodes).length, 9)
   })
 
+  test("It doesn't duplicate work for a given selector", () => {
+    // this test is pretty bad and very tied to the implementation because I 
+    // didn't want to pull in a spy / mock framework yet.
+    let calls = 0
+    const badSelectorKey = () => {
+      calls += 1
+      return 'key'
+    }
+    const selectors = createMockSelectors()
+
+    const numSelectorsWithDependencies = Object.keys(selectors).reduce((sum, key) => {
+      return sum + (selectors[key].dependencies === undefined ? 0 : 1)
+    }, 0)
+
+    const { nodes, edges } = selectorGraph(badSelectorKey)
+
+    assert.equal(Object.keys(nodes).length, 1)
+
+    // It gets called once for each tracked selector
+    // Since it always returns the same key, it only does work for one of them
+    // For that one, it goes down to the dependencies, and calls selectorKey
+    // twice for each one.
+    assert.equal(calls, numSelectorsWithDependencies + edges.length * 2)
+  })
+
+
   suite('defaultSelectorKey', () => {
     test('it names the nodes based on their string name by default', () => {
       createMockSelectors()
