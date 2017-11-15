@@ -41,7 +41,7 @@ const graph = {
     },
     "data$": {
       "name": "data$",
-      "recomputations": "N/A"
+      "recomputations": null,
     },
     "pets$": {
       "name": "pets$",
@@ -49,7 +49,7 @@ const graph = {
     },
     "random$": {
       "name": "random$",
-      "recomputations": "N/A"
+      "recomputations": null,
     },
     "thingy$": {
       "name": "thingy$",
@@ -57,7 +57,7 @@ const graph = {
     },
     "ui$": {
       "name": "ui$",
-      "recomputations": "N/A"
+      "recomputations": null,
     },
     "users$": {
       "name": "users$",
@@ -65,5 +65,9 @@ const graph = {
     }
   }
 }
+
+// This overrides the graph the devtools get - don't try this at home!
+window.__RESELECT_TOOLS__.selectorGraph = () => graph;
+
 
 drawCytoscapeGraph(graph);

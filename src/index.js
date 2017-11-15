@@ -42,18 +42,29 @@ export function reset() {
 
 
 export function checkSelector(selector) {
+
+  let isRegistered = false
   if (typeof selector === 'string' && _isFunction(_registered[selector])) {
-    selector = _registered[selector];
+    selector = _registered[selector]
+    isRegistered = true
   }
 
   if (!_isFunction(selector)) {
     throw new Error(`Selector ${selector} is not a function...has it been registered?`)
   }
 
-  const dependencies = selector.dependencies || []
-  const recomputations = selector.recomputations ? selector.recomputations() : 'N/A/'
+  if (!isRegistered) {
+    Object.keys(_registered).forEach((key) => {
+      if (_registered[key] === selector) {
+        isRegistered = true
+      }
+    })
+  }
 
-  const ret = { dependencies, recomputations }
+  const dependencies = selector.dependencies || []
+  const recomputations = selector.recomputations ? selector.recomputations() : null
+
+  const ret = { dependencies, recomputations, isRegistered }
   if (_getState) {
     const state = _getState()
     const inputs = dependencies.map((parentSelector) => parentSelector(state))
@@ -87,33 +98,39 @@ const defaultSelectorKey = (selector, registry) => {
 
   return (selector.dependencies || []).reduce((base, dep) => {
     return base + _sumString(dep)
-  }, selector.resultFunc.toString())
+  }, (selector.resultFunc ? selector.resultFunc : selector).toString())
 }
 
 export function selectorGraph(selectorKey = defaultSelectorKey) {
   const graph = { nodes: {}, edges: [] }
-  const traversedDependencies = new Set()
-
   const addToGraph = (selector) => {
     const name = selectorKey(selector, _registered)
+    if (graph.nodes[name]) return
+    const { recomputations, isRegistered } = checkSelector(selector)
     graph.nodes[name] = {
-      recomputations: selector.recomputations ? selector.recomputations() : 'N/A',
+      recomputations,
+      isRegistered,
       name
     }
 
     let dependencies = selector.dependencies || []
-    if (traversedDependencies.has(name)) { // Don't re-add.
-      dependencies = []
-    }
     dependencies.forEach((dependency) => {
       addToGraph(dependency)
       graph.edges.push({ from: name, to: selectorKey(dependency, _registered) })
     })
-    traversedDependencies.add(name)
   }
 
   for (let selector of _allSelectors) {
     addToGraph(selector)
   }
   return graph
+}
+
+// hack for devtools
+/* istanbul ignore if */
+if (typeof window !== 'undefined') {
+  window.__RESELECT_TOOLS__ = {
+    selectorGraph,
+    checkSelector
+  }
 }
