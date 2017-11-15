@@ -43,7 +43,7 @@ export function reset() {
 
 export function checkSelector(selector) {
   if (typeof selector === 'string' && _isFunction(_registered[selector])) {
-    selector = _registered[selector];
+    selector = _registered[selector]
   }
 
   if (!_isFunction(selector)) {
@@ -51,7 +51,7 @@ export function checkSelector(selector) {
   }
 
   const dependencies = selector.dependencies || []
-  const recomputations = selector.recomputations ? selector.recomputations() : 'N/A/'
+  const recomputations = selector.recomputations ? selector.recomputations() : null
 
   const ret = { dependencies, recomputations }
   if (_getState) {
@@ -87,7 +87,7 @@ const defaultSelectorKey = (selector, registry) => {
 
   return (selector.dependencies || []).reduce((base, dep) => {
     return base + _sumString(dep)
-  }, selector.resultFunc.toString())
+  }, (selector.resultFunc ? selector.resultFunc : selector).toString())
 }
 
 export function selectorGraph(selectorKey = defaultSelectorKey) {
