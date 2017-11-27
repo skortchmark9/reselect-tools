@@ -69,7 +69,7 @@ selectorGraph()
 ## Table of Contents
 
 - [Motivation](#motivation)
-- [Getting Started](#gettingstarted)
+- [Getting Started](#getting-started)
 - [Example](#example)
 - [API](#api)
   - [`createSelectorWithDependencies`](#createselectorwithdependenciesinputselectors--inputselectors-resultfunc)
@@ -85,7 +85,7 @@ It's handy to visualize the application state tree with the [Redux Devtools](htt
 
 ![Graph](examples/graph.png)
 
-This library was intended to be used with the [chrome extension](https://github.com/skortchmark9/reselect-devtools-extension). However, it can be still be [useful without the chrome extension installed](). The chrome extension will be useless without this library.
+This library was intended to be used with the [chrome extension](https://github.com/skortchmark9/reselect-devtools-extension). However, it can be still be [useful without the chrome extension installed](#without-the-extension). The chrome extension will be useless without this library.
 
 See the original reselect issue [here](https://github.com/reactjs/reselect/issues/279).
 
@@ -95,48 +95,48 @@ Firstly, I apologize in advance that this section is required. It would be great
 
 1. Install the Package
 
-    npm install -s reselect-tools
+        npm install -s reselect-tools
 
 2. Grab the [Chrome Extension](https://chrome.google.com/webstore/detail/reselect-devtools/cjmaipngmabglflfeepmdiffcijhjlbb)
 
 3. Tracking Dependencies:
 
-Replace ```createSelector``` from reselect with ```createSelectorWithDependencies```! 
-```
-import {
-	createSelectorWithDependencies as createSelector
-} from 'reselect-tools'
-```
+   Replace ```createSelector``` from reselect with ```createSelectorWithDependencies```! 
+   ```
+   import {
+    	createSelectorWithDependencies as createSelector
+   } from 'reselect-tools'
+   ```
 
-That's it! At this point you should be able to open the devtools and view the selector graph. While the graph will be correct, it might be hard to understand what's going on without...
+   That's it! At this point you should be able to open the devtools and view the selector graph. While the graph will be correct, it might be hard to understand what's going on without...
 
 4. Naming Selectors:
 
-```
-const foo$ = createSelectorWithDependencies(bar$, (foo) => foo + 1);
-foo$.selectorName = 'foo$' // selector while show up as 'foo'
-```
-This can get tedious, so you might want to register your selectors all at once.
-```
-import { registerSelectors } from 'reselect-tools'
-registerSelectors({ foo$, bar$ });
-```
-Or if you're keeping all your selectors in the same place:
-```
-import { registerSelectors } from 'reselect-tools'
-import * as selectors from './selectors.js'
-ReselectTools.registerSelectors(selectors)
-```
+   ```
+   const foo$ = createSelectorWithDependencies(bar$, (foo) => foo + 1);
+   foo$.selectorName = 'foo$' // selector while show up as 'foo'
+   ```
+   This can get tedious, so you might want to register your selectors all at once.
+   ```
+   import { registerSelectors } from 'reselect-tools'
+   registerSelectors({ foo$, bar$ });
+   ```
+   Or if you're keeping all your selectors in the same place:
+   ```
+   import { registerSelectors } from 'reselect-tools'
+   import * as selectors from './selectors.js'
+   ReselectTools.registerSelectors(selectors)
+   ```
 
-Now the graph should have nice names for your selectors.
+   Now the graph should have nice names for your selectors.
 
 5. Checking Selector Inputs and Outputs
 
-Imagine that your tests are passing, but you think some selector in your app might be receiving bad input from a depended-upon selector. Where in the chain is the problem? In order to allow ```checkSelector``` and by extension, the extension, to get this information, we need to give Reselect Tools some way of feeding state to a selector.
-```
-import store from './configureStore'
-ReselectTools.getStateWith(() => store.getState())
-```
+   Imagine that your tests are passing, but you think some selector in your app might be receiving bad input from a depended-upon selector. Where in the chain is the problem? In order to allow ```checkSelector``` and by extension, the extension, to get this information, we need to give Reselect Tools some way of feeding state to a selector.
+   ```
+   import store from './configureStore'
+   ReselectTools.getStateWith(() => store.getState())
+   ```
 
 ## Example
     npm run example
@@ -225,18 +225,16 @@ selectorGraph()
 //  }
 ```
 
-### registorSelectors(keySelectorObj)
-
-Simple helper to set names on an object containing selector names as keys and selectors as values. Has the side effect of guaranteeing a selector is added to the graph (even if it was not created with ```createSelectorWithDependencies``` and no selector in the graph depends on it).
-
-
-
 #### Using custom selectorKeys
 
 Nodes in the graph are keyed by string names. The name is determined by the ```selectorKey``` function. This function takes a selector outputs a string which must be unique and consistent for a given selector. The ```defaultSelectorKey``` looks for a function name, then a match in the registry, and finally resorts to calling toString on the selector's ```resultFunc```.
 
 See the [tests](test/test.js#L246) for an alternate selectorKey.
 
+
+### registorSelectors(keySelectorObj)
+
+Simple helper to set names on an object containing selector names as keys and selectors as values. Has the side effect of guaranteeing a selector is added to the graph (even if it was not created with ```createSelectorWithDependencies``` and no selector in the graph depends on it).
 
 ### Without The Extension
 
