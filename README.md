@@ -141,6 +141,9 @@ Firstly, I apologize in advance that this section is required. It would be great
    ```
 
 ## Example
+
+The example is running [here](http://skortchmark.com/reselect-tools/examples/demo.html). Grab the extension and take a look!
+
     npm run example
 
 ## API
