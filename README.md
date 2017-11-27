@@ -6,6 +6,8 @@
 Tools for working with the [reselect](https://github.com/reactjs/reselect) library:
 *Check selector dependencies, inputs, outputs, and recomputations at any time without refreshing!*
 
+![Graph](examples/extension.png)
+
 
 
 ```js
