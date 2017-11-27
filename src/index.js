@@ -1,5 +1,4 @@
 import { createSelector } from 'reselect'
-const _registered = {}
 let _getState = null
 let _allSelectors = new Set()
 
@@ -17,54 +16,42 @@ export function createSelectorWithDependencies(...funcs) {
 
 
 export function registerSelectors(selectors) {
-  const actuallySelectors = {}
-  Object.keys(selectors).forEach((key) => {
-    const selector = selectors[key]
+  Object.keys(selectors).forEach((name) => {
+    const selector = selectors[name]
     if (selector.resultFunc || _isFunction(selector)) {
-      actuallySelectors[key] = selector
+      selector.selectorName = name
+      _allSelectors.add(selector)
     }
-  })
-  return Object.assign(_registered, actuallySelectors)
-}
-
-function _unregisterSelectors() {
-  Object.keys(_registered).forEach((key) => {
-    delete _registered[key]
   })
 }
 
 
 export function reset() {
-  _unregisterSelectors()
   _getState = null
   _allSelectors = new Set()
 }
 
 
 export function checkSelector(selector) {
-
-  let isRegistered = false
-  if (typeof selector === 'string' && _isFunction(_registered[selector])) {
-    selector = _registered[selector]
-    isRegistered = true
+  if (typeof selector === 'string') {
+    for (const possibleSelector of _allSelectors) {
+      if (possibleSelector.selectorName === selector) {
+        selector = possibleSelector
+        break
+      }
+    }
   }
 
   if (!_isFunction(selector)) {
     throw new Error(`Selector ${selector} is not a function...has it been registered?`)
   }
 
-  if (!isRegistered) {
-    Object.keys(_registered).forEach((key) => {
-      if (_registered[key] === selector) {
-        isRegistered = true
-      }
-    })
-  }
 
-  const dependencies = selector.dependencies || []
+  const { dependencies = [], selectorName = null } = selector
+  const isNamed = typeof selectorName === 'string'
   const recomputations = selector.recomputations ? selector.recomputations() : null
 
-  const ret = { dependencies, recomputations, isRegistered }
+  const ret = { dependencies, recomputations, isNamed, selectorName }
   if (_getState) {
     const state = _getState()
     const inputs = dependencies.map((parentSelector) => parentSelector(state))
@@ -85,15 +72,13 @@ function _sumString(str) {
   return Array.from(str.toString()).reduce((sum, char) => char.charCodeAt(0) + sum, 0)
 }
 
-const defaultSelectorKey = (selector, registry) => {
-  if (selector.name) { // if it's a vanilla function, it will have a name.
-    return selector.name
+const defaultSelectorKey = (selector) => {
+  if (selector.selectorName) {
+    return selector.selectorName
   }
 
-  for (let key of Object.keys(registry)) {
-    if (registry[key] === selector) {
-      return key
-    }
+  if (selector.name) { // if it's a vanilla function, it will have a name.
+    return selector.name
   }
 
   return (selector.dependencies || []).reduce((base, dep) => {
@@ -104,19 +89,19 @@ const defaultSelectorKey = (selector, registry) => {
 export function selectorGraph(selectorKey = defaultSelectorKey) {
   const graph = { nodes: {}, edges: [] }
   const addToGraph = (selector) => {
-    const name = selectorKey(selector, _registered)
+    const name = selectorKey(selector)
     if (graph.nodes[name]) return
-    const { recomputations, isRegistered } = checkSelector(selector)
+    const { recomputations, isNamed } = checkSelector(selector)
     graph.nodes[name] = {
       recomputations,
-      isRegistered,
+      isNamed,
       name
     }
 
     let dependencies = selector.dependencies || []
     dependencies.forEach((dependency) => {
       addToGraph(dependency)
-      graph.edges.push({ from: name, to: selectorKey(dependency, _registered) })
+      graph.edges.push({ from: name, to: selectorKey(dependency) })
     })
   }
 

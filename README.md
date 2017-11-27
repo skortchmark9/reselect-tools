@@ -3,10 +3,11 @@
 [![npm package][npm-badge]][npm]
 [![Coveralls][coveralls-badge]][coveralls]
 
-Some tools for working with the [reselect](https://github.com/reactjs/reselect) library:
+Tools for working with the [reselect](https://github.com/reactjs/reselect) library:
+*Check selector dependencies, inputs, outputs, and recomputations at any time without refreshing!*
 
-* Check selector dependencies, inputs, outputs, and recomputations at any time.
-* Output a JSON representation of your selector graph (soon to be a visual browser extension!)
+![Graph](examples/extension.png)
+
 
 
 ```js
@@ -34,7 +35,9 @@ ReselectTools.checkSelector('currentUser$')
 	inputs: [{currentUser: 1}, users: {1: {name: 'sam'}}]
 	outputs: {name: 'sam'},
 	dependencies: [ui$, users$],
-	recomputations: 1
+	recomputations: 1,
+    isNamed: false,
+    selectorName: 'currentUser$'
 }
 selectorGraph()
 => {
@@ -67,19 +70,16 @@ selectorGraph()
 
 ## Table of Contents
 
-- [Installation](#installation)
 - [Motivation](#motivation)
+- [Getting Started](#getting-started)
 - [Example](#example)
 - [API](#api)
   - [`createSelectorWithDependencies`](#createselectorwithdependenciesinputselectors--inputselectors-resultfunc)
   - [`getStateWith`](#getstatewithfunc)
   - [`checkSelector`](#checkselectorselector)
   - [`selectorGraph`](#selectorgraphselectorkey--defaultselectorkey)
+  - [`registerSelectors`](#registorselectorskeyselectorobj)
 - [License](#license)
-
-## Installation
-    npm install reselect-tools
-
 
 ## Motivation
 
@@ -87,10 +87,58 @@ It's handy to visualize the application state tree with the [Redux Devtools](htt
 
 ![Graph](examples/graph.png)
 
-I am writing a chrome extension to take the output of selectorGraph() and create a graph inside the devtools, but you can use this library today for ```checkSelector``` and to create selector graphs statically (see the [example](#example)).
+This library was intended to be used with the [chrome extension](https://github.com/skortchmark9/reselect-devtools-extension). However, it can be still be [useful without the chrome extension installed](#without-the-extension). The chrome extension will be useless without this library.
 
 See the original reselect issue [here](https://github.com/reactjs/reselect/issues/279).
 
+## Getting Started
+
+Firstly, I apologize in advance that this section is required. It would be great to match the experience of installing redux devtools or react's. Hopefully the tools will be more tightly integrated with reselect at some point and these steps won't be necessary.
+
+1. Install the Package
+
+        npm install -s reselect-tools
+
+2. Grab the [Chrome Extension](https://chrome.google.com/webstore/detail/reselect-devtools/cjmaipngmabglflfeepmdiffcijhjlbb)
+
+3. Tracking Dependencies:
+
+   Replace ```createSelector``` from reselect with ```createSelectorWithDependencies```! 
+   ```
+   import {
+    	createSelectorWithDependencies as createSelector
+   } from 'reselect-tools'
+   ```
+
+   That's it! At this point you should be able to open the devtools and view the selector graph. While the graph will be correct, it might be hard to understand what's going on without...
+
+4. Naming Selectors:
+
+   ```
+   const foo$ = createSelectorWithDependencies(bar$, (foo) => foo + 1);
+   foo$.selectorName = 'foo$' // selector while show up as 'foo'
+   ```
+   This can get tedious, so you might want to register your selectors all at once.
+   ```
+   import { registerSelectors } from 'reselect-tools'
+   registerSelectors({ foo$, bar$ });
+   ```
+   Or if you're keeping all your selectors in the same place:
+   ```
+   import { registerSelectors } from 'reselect-tools'
+   import * as selectors from './selectors.js'
+   ReselectTools.registerSelectors(selectors)
+   ```
+
+   Now the graph should have nice names for your selectors.
+
+5. Checking Selector Inputs and Outputs
+
+   Imagine that your tests are passing, but you think some selector in your app might be receiving bad input from a depended-upon selector. Where in the chain is the problem? In order to allow ```checkSelector``` and by extension, the extension, to get this information, we need to give Reselect Tools some way of feeding state to a selector.
+   ```
+   import store from './configureStore'
+   ReselectTools.getStateWith(() => store.getState())
+   ```
 
 ## Example
     npm run example
@@ -181,9 +229,28 @@ selectorGraph()
 
 #### Using custom selectorKeys
 
-Nodes in the graph are keyed by string names. The name is determined by the ```selectorKey``` function. This function takes a selector and the registry populated from ```registerSelectors```. The ```defaultSelectorKey``` looks for a function name, then a match in the registry, and finally resorts to calling toString on the selector's ```resultFunc```.
+Nodes in the graph are keyed by string names. The name is determined by the ```selectorKey``` function. This function takes a selector outputs a string which must be unique and consistent for a given selector. The ```defaultSelectorKey``` looks for a function name, then a match in the registry, and finally resorts to calling toString on the selector's ```resultFunc```.
 
 See the [tests](test/test.js#L246) for an alternate selectorKey.
+
+
+### registorSelectors(keySelectorObj)
+
+Simple helper to set names on an object containing selector names as keys and selectors as values. Has the side effect of guaranteeing a selector is added to the graph (even if it was not created with ```createSelectorWithDependencies``` and no selector in the graph depends on it).
+
+### Without The Extension
+
+If you're using an unsupported browser, or aren't happy with the extension, you can still get at the data.
+
+The dev tools bind to your app via this global:
+```
+  window.__RESELECT_TOOLS__ = {
+    selectorGraph,
+    checkSelector
+  }
+```
+Even without the devtools, you can call ```__RESELECT_TOOLS__.checkSelector('mySelector$')``` from the developer console or ```__RESLECT_TOOLS__.selectorGraph()``` to see what's going on. If the JSON output of the graph is hard to parse, there's an example of how to create a visual selector graph [here](tests/your-app.js).
+
 
 ## License
 

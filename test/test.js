@@ -67,13 +67,12 @@ suite('registerSelectors', () => {
   test('allows you to name selectors', () => {
     const foo = () => 'foo'
     const bar = createSelectorWithDependencies(foo, () => 'bar')
-    const baz = createSelectorWithDependencies(bar, foo, () => 'bar')
-    const registered = registerSelectors({ foo, bar, baz })
+    const baz = createSelectorWithDependencies(bar, foo, () => 'baz')
+    registerSelectors({ foo, bar, bazinga: baz })
 
-    assert.equal(Object.keys(registered).length, 3)
-    assert.equal(registered.foo, foo)
-    assert.equal(registered.bar, bar)
-    assert.equal(registered.baz, baz)
+    assert.equal(foo.selectorName, 'foo')
+    assert.equal(bar.selectorName, 'bar')
+    assert.equal(baz.selectorName, 'bazinga')
   })
 
   test('ignores inputs which are not selectors or functions', () => {
@@ -83,9 +82,9 @@ suite('registerSelectors', () => {
       identity: x => x
     }
     const selectors = { foo, bar, utilities }
-    const registered = registerSelectors(selectors)
+    registerSelectors(selectors)
 
-    assert.equal(Object.keys(registered).length, 2)
+    assert.isUndefined(utilities.selectorName)
   })
 
   test('can be called additively', () => {
@@ -93,15 +92,14 @@ suite('registerSelectors', () => {
     const bar = createSelectorWithDependencies(foo, () => 'bar')
     const baz = createSelectorWithDependencies(bar, foo, () => 'bar')
 
+    registerSelectors({ foo, bar })
+    assert.equal(foo.selectorName, 'foo')
 
-    let registered = registerSelectors({ foo, bar })
-    assert.equal(Object.keys(registered).length, 2)
-    
-    registered = registerSelectors({ baz })
-    assert.equal(Object.keys(registered).length, 3)
-
-    registered = registerSelectors({ baz })
-    assert.equal(Object.keys(registered).length, 3)
+    registerSelectors({ baz })
+    registerSelectors({ hat: foo })
+    assert.equal(foo.selectorName, 'hat')
+    assert.equal(bar.selectorName, 'bar')
+    assert.equal(baz.selectorName, 'baz')
   })
 })
 
@@ -163,7 +161,8 @@ suite('checkSelector', () => {
       inputs: [ { baz : 1 } ],
       output: 1,
       recomputations: 1,
-      isRegistered: false
+      isNamed: false,
+      selectorName: null
     })
 
     const newState = {
@@ -182,7 +181,8 @@ suite('checkSelector', () => {
       inputs: [ { baz : 2 } ],
       output: 2,
       recomputations: 2,
-      isRegistered: false
+      isNamed: false,
+      selectorName: null
     })
   })
 
@@ -197,7 +197,8 @@ suite('checkSelector', () => {
       inputs: [ 1 ],
       output: 2,
       recomputations: 0,
-      isRegistered: true
+      isNamed: true,
+      selectorName: 'bar'
     })
   })
 
@@ -217,11 +218,11 @@ suite('checkSelector', () => {
     const two$ = createSelectorWithDependencies(one$, (one) => one + 1)
     registerSelectors({ one$ })
 
-    assert.equal(checkSelector(() => 1).isRegistered, false)
+    assert.equal(checkSelector(() => 1).isNamed, false)
 
-    assert.equal(checkSelector(two$).isRegistered, false)
+    assert.equal(checkSelector(two$).isNamed, false)
     registerSelectors({ two$ })
-    assert.equal(checkSelector(two$).isRegistered, true)
+    assert.equal(checkSelector(two$).isNamed, true)
   })
 })
 
@@ -257,17 +258,16 @@ suite('selectorGraph', () => {
   })
 
   test('allows you to pass in a different selector key function', () => {
-    function idxSelectorKey(selector, registry) {
-      const sorted = Object.keys(registry).sort()
-      for (let i = 0; i < sorted.length; i++) {
-        if (registry[sorted[i]] === selector) {
-          return i
-        }
-      }
+    function idxSelectorKey(selector) {
+      return selector.idx
     }
 
     const selectors = createMockSelectors()
-    registerSelectors(selectors)
+    Object.keys(selectors).sort().forEach((key, i) => {
+      const selector = selectors[key]
+      selector.idx = i
+    })
+
     const { nodes } = selectorGraph(idxSelectorKey)
     assert.equal(Object.keys(nodes).length, 9)
   })

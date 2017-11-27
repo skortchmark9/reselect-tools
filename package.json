@@ -1,6 +1,6 @@
 {
   "name": "reselect-tools",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Selector Debugging Tools for Reselect.",
   "main": "lib/index.js",
   "jsnext:main": "es/index.js",
@@ -11,7 +11,7 @@
     "es"
   ],
   "bugs": {
-    "url": "https://github.com/TODO"
+    "url": "https://github.com/skortchmark9/reselect-tools"
   },
   "scripts": {
     "compile:commonjs": "better-npm-run compile:commonjs",
