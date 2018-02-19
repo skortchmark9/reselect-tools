@@ -14,11 +14,12 @@ export function createSelectorWithDependencies(...funcs) {
   return selector
 }
 
+const _isSelector = (selector) => (selector && selector.resultFunc) || _isFunction(selector)
 
 export function registerSelectors(selectors) {
   Object.keys(selectors).forEach((name) => {
     const selector = selectors[name]
-    if (selector.resultFunc || _isFunction(selector)) {
+    if (_isSelector(selector)) {
       selector.selectorName = name
       _allSelectors.add(selector)
     }
