@@ -87,6 +87,13 @@ suite('registerSelectors', () => {
     assert.isUndefined(utilities.selectorName)
   })
 
+  test('ignores inputs which are null', () => {
+    const foo = () => 'foo'
+    const bar = createSelectorWithDependencies(foo, () => 'bar')
+    const selectors = { foo, bar, property: null }
+    registerSelectors(selectors)
+  })
+
   test('can be called additively', () => {
     const foo = () => 'foo'
     const bar = createSelectorWithDependencies(foo, () => 'bar')
