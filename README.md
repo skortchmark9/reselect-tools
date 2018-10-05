@@ -78,7 +78,7 @@ selectorGraph()
   - [`getStateWith`](#getstatewithfunc)
   - [`checkSelector`](#checkselectorselector)
   - [`selectorGraph`](#selectorgraphselectorkey--defaultselectorkey)
-  - [`registerSelectors`](#registorselectorskeyselectorobj)
+  - [`registerSelectors`](#registerselectorskeyselectorobj)
 - [License](#license)
 
 ## Motivation
@@ -237,7 +237,7 @@ Nodes in the graph are keyed by string names. The name is determined by the ```s
 See the [tests](test/test.js#L246) for an alternate selectorKey.
 
 
-### registorSelectors(keySelectorObj)
+### registerSelectors(keySelectorObj)
 
 Simple helper to set names on an object containing selector names as keys and selectors as values. Has the side effect of guaranteeing a selector is added to the graph (even if it was not created with ```createSelectorWithDependencies``` and no selector in the graph depends on it).
 
