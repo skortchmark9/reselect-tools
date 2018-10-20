@@ -1,7 +1,6 @@
 import chai from 'chai'
 import { createSelector } from 'reselect'
 import {  
-  createSelectorWithDependencies,
   registerSelectors,
   getStateWith,
   checkSelector,
@@ -9,65 +8,16 @@ import {
   reset  } from '../src/index'
 
 const assert = chai.assert
+const createSelectorWithDependencies = createSelector
 
 beforeEach(reset)
-
-suite('createSelectorWithDependencies', () => {
-
-  test('it creates a selector which has dependencies', () => {
-    const func1 = () => 1
-    const selector = createSelectorWithDependencies(func1, () => 1)
-    assert.equal(selector.dependencies.length, 1)
-    assert.equal(selector.dependencies[0], func1)
-  })
-
-  test('they can be spread', () => {
-    const func1 = (state) => state.func1
-    const func2 = (state) => state.func2
-    const func3 = (state) => state.func3
-    const selector = createSelectorWithDependencies(
-      func1, func2, func3, () => 1)
-    assert.equal(selector.dependencies.length, 3)
-    assert.equal(selector.dependencies[0], func1)
-    assert.equal(selector.dependencies[1], func2)
-    assert.equal(selector.dependencies[2], func3)
-  })
-
-  test('they can be an array', () => {
-    const func1 = (state) => state.func1
-    const func2 = (state) => state.func2
-    const func3 = (state) => state.func3
-    const selector = createSelectorWithDependencies(
-      [ func1, func2, func3 ], () => 1)
-    assert.equal(selector.dependencies.length, 3)
-    assert.equal(selector.dependencies[0], func1)
-    assert.equal(selector.dependencies[1], func2)
-    assert.equal(selector.dependencies[2], func3)
-  })
-
-  test('they can be recursive', () => {
-    const func1 = (state) => state.func1
-    const selector1 = createSelectorWithDependencies(func1, () => 'selector1')
-
-    const func2 = (state) => state.func2
-    const func3 = (state) => state.func3
-    const selector = createSelectorWithDependencies(
-      [ selector1, func2, func3 ], () => 1)
-    assert.equal(selector.dependencies.length, 3)
-    assert.equal(selector.dependencies[0], selector1)
-    assert.equal(selector.dependencies[1], func2)
-    assert.equal(selector.dependencies[2], func3)
-
-    assert.equal(selector.dependencies[0].dependencies[0], func1)
-  })
-})
 
 suite('registerSelectors', () => {
 
   test('allows you to name selectors', () => {
     const foo = () => 'foo'
-    const bar = createSelectorWithDependencies(foo, () => 'bar')
-    const baz = createSelectorWithDependencies(bar, foo, () => 'baz')
+    const bar = createSelector(foo, () => 'bar')
+    const baz = createSelector(bar, foo, () => 'baz')
     registerSelectors({ foo, bar, bazinga: baz })
 
     assert.equal(foo.selectorName, 'foo')
@@ -244,7 +194,7 @@ suite('selectorGraph', () => {
     const random$ = () => 1
     const thingy$ = createSelectorWithDependencies(random$, (number) => number + 1)
     const booya$ = createSelectorWithDependencies(thingy$, currentUser$, () => 'booya!')
-    return {
+    const selectors = {
       data$,
       ui$,
       users$,
@@ -255,10 +205,28 @@ suite('selectorGraph', () => {
       thingy$,
       booya$    
     }
+    registerSelectors(selectors)
+    return selectors
   }
+
+  test('returns an empty graph if no selectors are registered', () => {
+    const { edges, nodes } = selectorGraph()
+    assert.equal(Object.keys(nodes).length, 0)
+    assert.equal(edges.length, 0)
+  })
+
+  test('walks up the tree if you register a single selector', () => {
+    function parent() { return 'parent' }
+    const child$ = createSelector(parent, (string) => string)
+    registerSelectors({ child$ })
+    const { edges, nodes } = selectorGraph()
+    assert.equal(Object.keys(nodes).length, 2)
+    assert.equal(edges.length, 1)
+  })
 
   test('it outputs a selector graph', () => {
     const selectors = createMockSelectors()
+
     const { edges, nodes } = selectorGraph()
     assert.equal(Object.keys(nodes).length, Object.keys(selectors).length)
     assert.equal(edges.length, 9)
@@ -279,32 +247,6 @@ suite('selectorGraph', () => {
     assert.equal(Object.keys(nodes).length, 9)
   })
 
-  test("It doesn't duplicate work for a given selector", () => {
-    // this test is pretty bad and very tied to the implementation because I 
-    // didn't want to pull in a spy / mock framework yet.
-    let calls = 0
-    const badSelectorKey = () => {
-      calls += 1
-      return 'key'
-    }
-    const selectors = createMockSelectors()
-
-    const numSelectorsWithDependencies = Object.keys(selectors).reduce((sum, key) => {
-      return sum + (selectors[key].dependencies === undefined ? 0 : 1)
-    }, 0)
-
-    const { nodes, edges } = selectorGraph(badSelectorKey)
-
-    assert.equal(Object.keys(nodes).length, 1)
-
-    // It gets called once for each tracked selector
-    // Since it always returns the same key, it only does work for one of them
-    // For that one, it goes down to the dependencies, and calls selectorKey
-    // twice for each one.
-    assert.equal(calls, numSelectorsWithDependencies + edges.length * 2)
-  })
-
-
   suite('defaultSelectorKey', () => {
     test('it names the nodes based on their string name by default', () => {
       createMockSelectors()
@@ -315,27 +257,44 @@ suite('selectorGraph', () => {
     })
 
     test('it falls back to toString on anonymous functions', () => {
-      createSelectorWithDependencies(() => 1, (one) => one + 1)
+      const selector1 = createSelector(() => 1, (one) => one + 1)
+      registerSelectors({ selector1 })
       const { nodes } = selectorGraph()
       const keys = Object.keys(nodes)
       assert.equal(keys.length, 2)
+
+      // [ 'selector1', 'function () {\n        return 1;\n      }' ]
       for (let key of keys) {
         assert.include(key, '1')
       }
     })
 
+    test('it creates numeric names for unregistered selectors', () => {
+      const foo$ = createSelector(() => 'foo')
+      const unregistered$ = createSelector(foo$, () => 1)
+      const registered$ = createSelector(unregistered$, () => 3)
+
+      registerSelectors({ registered$, foo$ })
+      const { nodes } = selectorGraph()
+      const keys = Object.keys(nodes)
+      assert.equal(keys.length, 3)
+
+      // please let's do better!
+      assert.isDefined(nodes['function () {\n        return 1;\n      }22074'])
+    })
+
     test("doesn't duplicate nodes if they are different", () => {
       const foo$ = (state) => state.foo // node1
-      const select = () => 1
-      createSelectorWithDependencies(foo$, select) // node 2
-      createSelectorWithDependencies(select) // node 3
+      const select = () => 1 // node 2
+      createSelector(foo$, select)
+      createSelector(select) // node 3
+      registerSelectors({ foo$, baz: select })
       const { nodes } = selectorGraph()
-      assert.equal(Object.keys(nodes).length, 3)
+      assert.equal(Object.keys(nodes).length, 2)
     })
 
     test('it names the nodes based on entries in the registry if they are there', () => {
-      const selectors = createMockSelectors()
-      registerSelectors(selectors)
+      createMockSelectors()
       const { edges } = selectorGraph()
 
       const expectedEdges = [ 
@@ -350,15 +309,6 @@ suite('selectorGraph', () => {
         { from: 'booya$', to: 'currentUser$' }
       ]
       assert.sameDeepMembers(edges, expectedEdges)
-    })
-
-    test('it interops with regular reselect selectors', () => {
-      const foo$ = (state) => state.foo
-      const bar$ = createSelector(foo$, (foo) => foo + 1)
-      createSelectorWithDependencies(foo$, bar$, (foo, bar) => foo + bar)
-      const { nodes , edges } = selectorGraph()
-      assert.equal(Object.keys(nodes).length, 3)
-      assert.equal(Object.keys(edges).length, 2)
     })
   })
 })
