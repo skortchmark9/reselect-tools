@@ -53,8 +53,15 @@ export function checkSelector(selector) {
   if (_getState) {
     const state = _getState()
     const inputs = dependencies.map((parentSelector) => parentSelector(state))
-    const output = selector(state)
-    Object.assign(ret, { inputs, output })
+    const extra = { inputs }
+    try {
+      const output = selector(state)
+      extra.output = output
+    } catch (e) {
+      const error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${e}`
+      extra.error = error
+    }
+    Object.assign(ret, extra)
   }
 
   return ret

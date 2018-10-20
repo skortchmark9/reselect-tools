@@ -181,6 +181,16 @@ suite('checkSelector', () => {
     registerSelectors({ two$ })
     assert.equal(checkSelector(two$).isNamed, true)
   })
+
+  test('it catches errors inside selector functions and exposes them', () => {
+    const badSelector$ = (state) => state.foo.bar
+    getStateWith(() => [])
+    registerSelectors({ badSelector$ })
+
+    const checked = checkSelector('badSelector$')
+    assert.equal(checked.error, 'checkSelector: error getting output of selector badSelector$. The error was:\n' + 
+      'TypeError: Cannot read property \'bar\' of undefined')
+  })
 })
 
 suite('selectorGraph', () => {
