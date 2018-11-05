@@ -1,27 +1,35 @@
 import { createSelector } from 'reselect'
+
 let _getState = null
 let _allSelectors = new Set()
 
 
 const _isFunction = (func) => typeof func === 'function'
 
-export function createSelectorWithDependencies(...funcs) {
-  let resultFunc = funcs.pop()
-  const dependencies = Array.isArray(funcs[0]) ? funcs[0] : funcs
-  const selector = createSelector(...dependencies, resultFunc)
-  selector.dependencies = dependencies
-  _allSelectors.add(selector)
-  return selector
+/*
+ * This function is only exported for legacy purposes.
+ * It will be removed in future versions.
+ * 
+ */
+export function createSelectorWithDependencies(...args) {
+  return createSelector(...args)
 }
 
 const _isSelector = (selector) => (selector && selector.resultFunc) || _isFunction(selector)
+
+const _addSelector = (selector) => {
+  _allSelectors.add(selector)
+
+  const dependencies = selector.dependencies || []
+  dependencies.forEach(_addSelector)
+}
 
 export function registerSelectors(selectors) {
   Object.keys(selectors).forEach((name) => {
     const selector = selectors[name]
     if (_isSelector(selector)) {
       selector.selectorName = name
-      _allSelectors.add(selector)
+      _addSelector(selector)
     }
   })
 }
@@ -56,8 +64,15 @@ export function checkSelector(selector) {
   if (_getState) {
     const state = _getState()
     const inputs = dependencies.map((parentSelector) => parentSelector(state))
-    const output = selector(state)
-    Object.assign(ret, { inputs, output })
+    const extra = { inputs }
+    try {
+      const output = selector(state)
+      extra.output = output
+    } catch (e) {
+      const error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${e}`
+      extra.error = error
+    }
+    Object.assign(ret, extra)
   }
 
   return ret

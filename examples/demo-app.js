@@ -1,4 +1,5 @@
-var { createSelectorWithDependencies, selectorGraph } = ReselectTools;
+var { selectorGraph } = ReselectTools;
+var { createSelector } = Reselect;
 ReselectTools.getStateWith(() => STORE);
 
 var STORE = {
@@ -31,14 +32,14 @@ var STORE = {
 
 const data$ = (state) => state.data;
 const ui$ = (state) => state.ui;
-var users$ = createSelectorWithDependencies(data$, (data) => data.users);
-var pets$ = createSelectorWithDependencies(data$, ({ pets }) => pets);
-var currentUser$ = createSelectorWithDependencies(ui$, users$, (ui, users) => users[ui.currentUser]);
+var users$ = createSelector(data$, (data) => data.users);
+var pets$ = createSelector(data$, ({ pets }) => pets);
+var currentUser$ = createSelector(ui$, users$, (ui, users) => users[ui.currentUser]);
 
-var currentUserPets$ = createSelectorWithDependencies(currentUser$, pets$, (currentUser, pets) => currentUser.pets.map((petId) => pets[petId]));
+var currentUserPets$ = createSelector(currentUser$, pets$, (currentUser, pets) => currentUser.pets.map((petId) => pets[petId]));
 
 const random$ = (state) => 1;
-const thingy$ = createSelectorWithDependencies(random$, (number) => number + 1);
+const thingy$ = createSelector(random$, (number) => number + 1);
 
 const selectors = {
   data$,

@@ -11,12 +11,6 @@ Tools for working with the [reselect](https://github.com/reactjs/reselect) libra
 
 
 ```js
-// in selectors.js
-import {
-	createSelectorWithDependencies as createSelector
-} from 'reselect-tools'
-
-
 export const data$ = (state) => state.data;
 export const ui$ = (state) => state.ui;
 export const users$ = createSelector(data$, (data) => data.users);
@@ -74,7 +68,6 @@ selectorGraph()
 - [Getting Started](#getting-started)
 - [Example](#example)
 - [API](#api)
-  - [`createSelectorWithDependencies`](#createselectorwithdependenciesinputselectors--inputselectors-resultfunc)
   - [`getStateWith`](#getstatewithfunc)
   - [`checkSelector`](#checkselectorselector)
   - [`selectorGraph`](#selectorgraphselectorkey--defaultselectorkey)
@@ -101,38 +94,28 @@ Firstly, I apologize in advance that this section is required. It would be great
 
 2. Grab the [Chrome Extension](https://chrome.google.com/webstore/detail/reselect-devtools/cjmaipngmabglflfeepmdiffcijhjlbb)
 
-3. Tracking Dependencies:
+3. Building the Graph:
 
-   Replace ```createSelector``` from reselect with ```createSelectorWithDependencies```! 
-   ```
-   import {
-    	createSelectorWithDependencies as createSelector
-   } from 'reselect-tools'
-   ```
-
-   That's it! At this point you should be able to open the devtools and view the selector graph. While the graph will be correct, it might be hard to understand what's going on without...
-
-4. Naming Selectors:
-
-   ```
-   const foo$ = createSelectorWithDependencies(bar$, (foo) => foo + 1);
-   foo$.selectorName = 'foo$' // selector while show up as 'foo'
-   ```
-   This can get tedious, so you might want to register your selectors all at once.
+   In order to start building out the selector graph, we need to tell the devtools about the selectors.
    ```
    import { registerSelectors } from 'reselect-tools'
-   registerSelectors({ foo$, bar$ });
+   registerSelectors({ mySelector$ })
    ```
-   Or if you're keeping all your selectors in the same place:
+   If you're keeping all your selectors in the same place, this is dead simple:
    ```
-   import { registerSelectors } from 'reselect-tools'
    import * as selectors from './selectors.js'
-   ReselectTools.registerSelectors(selectors)
+   registerSelectors(selectors)
    ```
 
-   Now the graph should have nice names for your selectors.
+   That's it! At this point you should be able to open the devtools and view the selector graph.
 
-5. Checking Selector Inputs and Outputs
+   The tools will automatically discover and name dependencies of the selectors. If you want to override the name of a selector, you can do so:
+   ```
+   const foo$ = createSelector(bar$, (foo) => foo + 1);
+   foo$.selectorName = 'bar$' // selector while show up as 'bar'
+   ```
+
+4. Checking Selector Inputs and Outputs
 
    Imagine that your tests are passing, but you think some selector in your app might be receiving bad input from a depended-upon selector. Where in the chain is the problem? In order to allow ```checkSelector``` and by extension, the extension, to get this information, we need to give Reselect Tools some way of feeding state to a selector.
    ```
@@ -148,24 +131,6 @@ The example is running [here](http://skortchmark.com/reselect-tools/examples/dem
 
 ## API
 
-### createSelectorWithDependencies(...inputSelectors | [inputSelectors], resultFunc)
-
-Calls down to Reselect's `createSelector`, but adds ```inputSelectors``` as an array of ```.dependencies``` on the returned selector.
-
-```js
-const vanillaSelector1 = state => state.values.value1
-const vanillaSelector2 = state => state.values.value2
-const mySelector = createSelectorWithDependencies(
-  vanillaSelector1,
-  vanillaSelector2,
-  (value1, value2) => value1 + value2
-)
-
-mySelector.dependencies[0] // vanillaSelector1
-mySelector.dependencies[1] // vanillaSelector2
-```
-
-
 ### getStateWith(func)
 
 `getStateWith` accepts a function which returns the current state. This state is then passed into ```checkSelector```. In most cases, this will be ```store.getState()```
@@ -175,7 +140,6 @@ mySelector.dependencies[1] // vanillaSelector2
 Outputs information about the selector at the given time.
 
 By default, outputs only the recomputations of the selector.
-If you use ```createSelectorWithDependencies```, it will also output the selector's dependencies.
 If you use ```getStateWith```, it will output the selector's input and output values.
 If you use ```registerSelectors```, you can pass it the string name of a selector.
 
@@ -183,7 +147,7 @@ If you use ```registerSelectors```, you can pass it the string name of a selecto
 ```js
 const two$ = () => 2;
 const four$ = () => 4
-const mySelector$ = createSelectorWithDependencies(two$, four$, (two, four) => two + four)
+const mySelector$ = createSelector(two$, four$, (two, four) => two + four)
 registerSelectors({ mySelector$ })
 getStateWith(() => null)
 
@@ -239,7 +203,8 @@ See the [tests](test/test.js#L246) for an alternate selectorKey.
 
 ### registerSelectors(keySelectorObj)
 
-Simple helper to set names on an object containing selector names as keys and selectors as values. Has the side effect of guaranteeing a selector is added to the graph (even if it was not created with ```createSelectorWithDependencies``` and no selector in the graph depends on it).
+Add a named selector to the graph. Set selector names as keys and selectors as values.
+
 
 ### Without The Extension
 

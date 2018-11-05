@@ -1,6 +1,6 @@
 {
   "name": "reselect-tools",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Selector Debugging Tools for Reselect.",
   "main": "lib/index.js",
   "jsnext:main": "es/index.js",
@@ -84,6 +84,6 @@
     "uglify-js": "^3.0.20"
   },
   "dependencies": {
-    "reselect": "^3.0.1"
+    "reselect": "4.0.0"
   }
 }
