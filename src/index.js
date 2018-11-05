@@ -1,8 +1,19 @@
+import { createSelector } from 'reselect'
+
 let _getState = null
 let _allSelectors = new Set()
 
 
 const _isFunction = (func) => typeof func === 'function'
+
+/*
+ * This function is only exported for legacy purposes.
+ * It will be removed in future versions.
+ * 
+ */
+export function createSelectorWithDependencies(...args) {
+  return createSelector(...args)
+}
 
 const _isSelector = (selector) => (selector && selector.resultFunc) || _isFunction(selector)
 

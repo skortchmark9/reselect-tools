@@ -2,13 +2,13 @@ import chai from 'chai'
 import { createSelector } from 'reselect'
 import {  
   registerSelectors,
+  createSelectorWithDependencies,
   getStateWith,
   checkSelector,
   selectorGraph,
   reset  } from '../src/index'
 
 const assert = chai.assert
-const createSelectorWithDependencies = createSelector
 
 beforeEach(reset)
 
@@ -27,7 +27,7 @@ suite('registerSelectors', () => {
 
   test('ignores inputs which are not selectors or functions', () => {
     const foo = () => 'foo'
-    const bar = createSelectorWithDependencies(foo, () => 'bar')
+    const bar = createSelector(foo, () => 'bar')
     const utilities = {
       identity: x => x
     }
@@ -39,15 +39,15 @@ suite('registerSelectors', () => {
 
   test('ignores inputs which are null', () => {
     const foo = () => 'foo'
-    const bar = createSelectorWithDependencies(foo, () => 'bar')
+    const bar = createSelector(foo, () => 'bar')
     const selectors = { foo, bar, property: null }
     registerSelectors(selectors)
   })
 
   test('can be called additively', () => {
     const foo = () => 'foo'
-    const bar = createSelectorWithDependencies(foo, () => 'bar')
-    const baz = createSelectorWithDependencies(bar, foo, () => 'bar')
+    const bar = createSelector(foo, () => 'bar')
+    const baz = createSelector(bar, foo, () => 'bar')
 
     registerSelectors({ foo, bar })
     assert.equal(foo.selectorName, 'foo')
@@ -60,11 +60,27 @@ suite('registerSelectors', () => {
   })
 })
 
+suite('createSelectorWithDependencies', () => {
+  test('it is just exported for legacy purposes', () => {
+    const four = () => 4
+    let calls1 = 0
+    let calls2 = 0
+    const selector1 = createSelector(four, () => calls1++)
+    const selector2 = createSelectorWithDependencies(four, () => calls2++)
+
+    selector1()
+    selector1()
+    selector2()
+    selector2()
+    assert.equal(calls1, calls2)
+  })
+})
+
 suite('checkSelector', () => {
 
   test('it outputs a selector\'s dependencies, even if it\'s a plain function', () => {
     const foo = () => 'foo'
-    const bar = createSelectorWithDependencies(foo, () => 'bar')
+    const bar = createSelector(foo, () => 'bar')
     
     assert.equal(checkSelector(foo).dependencies.length, 0)
 
@@ -82,7 +98,7 @@ suite('checkSelector', () => {
     getStateWith(() => state)
 
     const foo = (state) => state.foo
-    const bar = createSelectorWithDependencies(foo, (foo) => foo.baz)
+    const bar = createSelector(foo, (foo) => foo.baz)
     
     const checkedFoo = checkSelector(foo)
     assert.equal(checkedFoo.inputs.length, 0)
@@ -99,7 +115,7 @@ suite('checkSelector', () => {
 
   test('it returns the number of recomputations for a given selector', () => {
     const foo = (state) => state.foo
-    const bar = createSelectorWithDependencies(foo, (foo) => foo.baz)
+    const bar = createSelector(foo, (foo) => foo.baz)
     assert.equal(bar.recomputations(), 0)
 
     const state = { 
@@ -145,7 +161,7 @@ suite('checkSelector', () => {
 
   test("it allows you to pass in a string name of a selector if you've registered", () => {
     const foo = (state) => state.foo
-    const bar = createSelectorWithDependencies(foo, (foo) => foo + 1)
+    const bar = createSelector(foo, (foo) => foo + 1)
     registerSelectors({ bar })
     getStateWith(() => ({ foo: 1 }))
     const checked = checkSelector('bar')
@@ -161,7 +177,7 @@ suite('checkSelector', () => {
 
   test('it throws if you try to check a non-existent selector', () => {
     const foo = (state) => state.foo
-    const bar = createSelectorWithDependencies(foo, (foo) => foo + 1)
+    const bar = createSelector(foo, (foo) => foo + 1)
     registerSelectors({ bar })
     assert.throws(() => checkSelector('baz'))
   })
@@ -172,7 +188,7 @@ suite('checkSelector', () => {
 
   test('it tells you whether or not a selector has been registered', () => {
     const one$ = () => 1
-    const two$ = createSelectorWithDependencies(one$, (one) => one + 1)
+    const two$ = createSelector(one$, (one) => one + 1)
     registerSelectors({ one$ })
 
     assert.equal(checkSelector(() => 1).isNamed, false)
@@ -197,13 +213,13 @@ suite('selectorGraph', () => {
   function createMockSelectors() {
     const data$ = (state) => state.data
     const ui$ = (state) => state.ui
-    const users$ = createSelectorWithDependencies(data$, (data) => data.users)
-    const pets$ = createSelectorWithDependencies(data$, ({ pets }) => pets)
-    const currentUser$ = createSelectorWithDependencies(ui$, users$, (ui, users) => users[ui.currentUser])
-    const currentUserPets$ = createSelectorWithDependencies(currentUser$, pets$, (currentUser, pets) => currentUser.pets.map((petId) => pets[petId]))
+    const users$ = createSelector(data$, (data) => data.users)
+    const pets$ = createSelector(data$, ({ pets }) => pets)
+    const currentUser$ = createSelector(ui$, users$, (ui, users) => users[ui.currentUser])
+    const currentUserPets$ = createSelector(currentUser$, pets$, (currentUser, pets) => currentUser.pets.map((petId) => pets[petId]))
     const random$ = () => 1
-    const thingy$ = createSelectorWithDependencies(random$, (number) => number + 1)
-    const booya$ = createSelectorWithDependencies(thingy$, currentUser$, () => 'booya!')
+    const thingy$ = createSelector(random$, (number) => number + 1)
+    const booya$ = createSelector(thingy$, currentUser$, () => 'booya!')
     const selectors = {
       data$,
       ui$,
