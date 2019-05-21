@@ -9,7 +9,7 @@ const _isFunction = (func) => typeof func === 'function'
 /*
  * This function is only exported for legacy purposes.
  * It will be removed in future versions.
- * 
+ *
  */
 export function createSelectorWithDependencies(...args) {
   return createSelector(...args)
@@ -57,21 +57,27 @@ export function checkSelector(selector) {
 
 
   const { dependencies = [], selectorName = null } = selector
+
   const isNamed = typeof selectorName === 'string'
   const recomputations = selector.recomputations ? selector.recomputations() : null
 
   const ret = { dependencies, recomputations, isNamed, selectorName }
   if (_getState) {
+    const extra = {}
     const state = _getState()
-    const inputs = dependencies.map((parentSelector) => parentSelector(state))
-    const extra = { inputs }
+
     try {
-      const output = selector(state)
-      extra.output = output
+      extra.inputs = dependencies.map((parentSelector) => parentSelector(state))
+
+      try {
+        extra.output = selector(state)
+      } catch (e) {
+        extra.error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${e}`
+      }
     } catch (e) {
-      const error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${e}`
-      extra.error = error
+      extra.error = `checkSelector: error getting inputs of selector ${selectorName}. The error was:\n${e}`
     }
+
     Object.assign(ret, extra)
   }
 
