@@ -1,6 +1,6 @@
 import chai from 'chai'
 import { createSelector } from 'reselect'
-import {  
+import {
   registerSelectors,
   createSelectorWithDependencies,
   getStateWith,
@@ -81,7 +81,7 @@ suite('checkSelector', () => {
   test('it outputs a selector\'s dependencies, even if it\'s a plain function', () => {
     const foo = () => 'foo'
     const bar = createSelector(foo, () => 'bar')
-    
+
     assert.equal(checkSelector(foo).dependencies.length, 0)
 
     assert.equal(checkSelector(bar).dependencies.length, 1)
@@ -89,7 +89,7 @@ suite('checkSelector', () => {
   })
 
   test('if you give it a way of getting state, it also gets inputs and outputs', () => {
-    const state = { 
+    const state = {
       foo: {
         baz: 1
       }
@@ -99,13 +99,13 @@ suite('checkSelector', () => {
 
     const foo = (state) => state.foo
     const bar = createSelector(foo, (foo) => foo.baz)
-    
+
     const checkedFoo = checkSelector(foo)
     assert.equal(checkedFoo.inputs.length, 0)
     assert.deepEqual(checkedFoo.output, { baz: 1 })
     assert.deepEqual(checkedFoo.output, foo(state))
 
-    const checkedBar = checkSelector(bar)    
+    const checkedBar = checkSelector(bar)
     assert.deepEqual(checkedBar.inputs, [ { baz: 1 } ])
     assert.equal(checkedBar.output, 1)
     assert.deepEqual(checkedBar.output, bar(state))
@@ -118,7 +118,7 @@ suite('checkSelector', () => {
     const bar = createSelector(foo, (foo) => foo.baz)
     assert.equal(bar.recomputations(), 0)
 
-    const state = { 
+    const state = {
       foo: {
         baz: 1
       }
@@ -198,13 +198,24 @@ suite('checkSelector', () => {
     assert.equal(checkSelector(two$).isNamed, true)
   })
 
+  test('it catches errors inside parent selector functions and exposes them', () => {
+    const badParentSelector$ = (state) => state.foo.bar
+    const badSelector$ = createSelector(badParentSelector$, (foo) => foo)
+    getStateWith(() => [])
+    registerSelectors({ badSelector$ })
+
+    const checked = checkSelector('badSelector$')
+    assert.equal(checked.error, 'checkSelector: error getting inputs of selector badSelector$. The error was:\n' +
+        'TypeError: Cannot read property \'bar\' of undefined')
+  })
+
   test('it catches errors inside selector functions and exposes them', () => {
     const badSelector$ = (state) => state.foo.bar
     getStateWith(() => [])
     registerSelectors({ badSelector$ })
 
     const checked = checkSelector('badSelector$')
-    assert.equal(checked.error, 'checkSelector: error getting output of selector badSelector$. The error was:\n' + 
+    assert.equal(checked.error, 'checkSelector: error getting output of selector badSelector$. The error was:\n' +
       'TypeError: Cannot read property \'bar\' of undefined')
   })
 })
@@ -229,7 +240,7 @@ suite('selectorGraph', () => {
       currentUserPets$,
       random$,
       thingy$,
-      booya$    
+      booya$
     }
     registerSelectors(selectors)
     return selectors
@@ -323,7 +334,7 @@ suite('selectorGraph', () => {
       createMockSelectors()
       const { edges } = selectorGraph()
 
-      const expectedEdges = [ 
+      const expectedEdges = [
         { from: 'users$', to: 'data$' },
         { from: 'pets$', to: 'data$' },
         { from: 'currentUser$', to: 'ui$' },
