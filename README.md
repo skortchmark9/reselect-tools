@@ -80,7 +80,7 @@ It's handy to visualize the application state tree with the [Redux Devtools](htt
 
 ![Graph](examples/graph.png)
 
-This library was intended to be used with the [chrome extension](https://github.com/skortchmark9/reselect-devtools-extension). However, it can be still be [useful without the chrome extension installed](#without-the-extension). The chrome extension will be useless without this library.
+This library was intended to be used with the [chrome extension](./extension). However, it can be still be [useful without the chrome extension installed](#without-the-extension). The chrome extension will be useless without this library.
 
 See the original reselect issue [here](https://github.com/reactjs/reselect/issues/279).
 
@@ -112,7 +112,7 @@ Firstly, I apologize in advance that this section is required. It would be great
    The tools will automatically discover and name dependencies of the selectors. If you want to override the name of a selector, you can do so:
    ```
    const foo$ = createSelector(bar$, (foo) => foo + 1);
-   foo$.selectorName = 'bar$' // selector while show up as 'bar'
+   foo$.selectorName = 'bar$' // selector will show up as 'bar'
    ```
 
 4. Checking Selector Inputs and Outputs
@@ -196,7 +196,7 @@ selectorGraph()
 
 #### Using custom selectorKeys
 
-Nodes in the graph are keyed by string names. The name is determined by the ```selectorKey``` function. This function takes a selector outputs a string which must be unique and consistent for a given selector. The ```defaultSelectorKey``` looks for a function name, then a match in the registry, and finally resorts to calling toString on the selector's ```resultFunc```.
+Nodes in the graph are keyed by string names. The name is determined by the ```selectorKey``` function. This function takes a selector and outputs a string which must be unique and consistent for a given selector. The ```defaultSelectorKey``` looks for a function name, then a match in the registry, and finally resorts to calling `toString` on the selector's ```resultFunc```.
 
 See the [tests](test/test.js#L246) for an alternate selectorKey.
 
