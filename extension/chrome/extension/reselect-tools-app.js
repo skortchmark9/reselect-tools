@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import Root from '../../app/containers/Root';
 import './reselect-tools-app.css';
 
-import * as api from './page-api';
+import * as api from './api';
 
 import createStore from '../../app/store/configureStore';
 import createApiMiddleware from '../../app/utils/apiMiddleware';

@@ -25,3 +25,12 @@ export function selectorGraph() {
   const str = 'JSON.stringify(window.__RESELECT_TOOLS__.selectorGraph())';
   return evalPromise(str);
 }
+
+export function resetRecomputations() {
+  const str = `(function() {
+    for (const selector of new Set(Object.values(window.__RESELECT_TOOLS__.selectorGraph().nodes))) {
+      selector.resetRecomputations && selector.resetRecomputations();
+    }
+  })();`
+  return evalPromise(str);
+}
