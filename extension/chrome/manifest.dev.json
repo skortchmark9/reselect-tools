@@ -1,0 +1,30 @@
+{
+  "background": {
+    "page": "background.html"
+  },
+  "browser_action": {
+    "default_icon": {
+      "128": "img/icon-128.png",
+      "16": "img/icon-16.png",
+      "48": "img/icon-48.png"
+    },
+    "default_title": "Reselect Devtools"
+  },
+  "content_security_policy": "default-src 'self'; script-src 'self' http://localhost:3000 https://localhost:3000 'unsafe-eval'; connect-src http://localhost:3000 https://localhost:3000; style-src * 'unsafe-inline' 'self' blob:; img-src 'self' data:;",
+  "description": "Reselect Devtools",
+  "devtools_page": "devtools.html",
+  "icons": {
+    "128": "img/icon-128.png",
+    "16": "img/icon-16.png",
+    "48": "img/icon-48.png"
+  },
+  "manifest_version": 2,
+  "name": "Reselect Devtools",
+  "permissions": [
+    "management",
+    "tabs",
+    "storage",
+    "<all_urls>"
+  ],
+  "version": "0.0.2"
+}
