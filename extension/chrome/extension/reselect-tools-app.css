@@ -1,0 +1,17 @@
+html, body, body > div {
+  height: 100%;
+  width: 100%;
+}
+body {
+  overflow: hidden;
+  min-width: 350px;
+  margin: 0;
+  padding: 0;
+  font-family: "Helvetica Neue", "Lucida Grande", sans-serif;
+  font-size: 11px;
+  background-color: rgb(0, 43, 54);
+  color: #fff;
+}
+a {
+  color: #fff;
+}

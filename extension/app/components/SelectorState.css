@@ -1,0 +1,18 @@
+td {
+	vertical-align: baseline;
+	padding: 5px;
+	padding-left: 0;
+	border-bottom: 1px solid rgb(79, 90, 101);
+}
+
+tr {
+	min-height: 20px;
+}
+
+section tr + tr {
+	border-bottom: 1px solid rgb(79, 90, 101);	
+}
+
+section h5 {
+	border-bottom: 1px solid white;
+}
