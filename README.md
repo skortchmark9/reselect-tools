@@ -80,7 +80,7 @@ It's handy to visualize the application state tree with the [Redux Devtools](htt
 
 ![Graph](examples/graph.png)
 
-This library was intended to be used with the [chrome extension](../extension). However, it can be still be [useful without the chrome extension installed](#without-the-extension). The chrome extension will be useless without this library.
+This library was intended to be used with the [chrome extension](./extension). However, it can be still be [useful without the chrome extension installed](#without-the-extension). The chrome extension will be useless without this library.
 
 See the original reselect issue [here](https://github.com/reactjs/reselect/issues/279).
 
