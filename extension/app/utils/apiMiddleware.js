@@ -22,7 +22,8 @@ export default api => store => next => async (action) => {
 
   if (action.type === types.GET_SELECTOR_GRAPH) {
     try {
-      const graph = await api.selectorGraph();
+      const { resetRecomputations } = action.payload;
+      const graph = await api.selectorGraph(resetRecomputations);
       store.dispatch(getSelectorGraphSuccess(graph));
     } catch (e) {
       store.dispatch(getSelectorGraphFailed());

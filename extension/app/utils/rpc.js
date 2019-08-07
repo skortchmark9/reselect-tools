@@ -1,11 +1,3 @@
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    const where = sender.tab ? 'a content script' : 'the extension';
-    const message = `extension received a message from ${where}`;
-    console.log(message);
-    sendResponse({ k: true });
-});
-
-
 function sendMessage(data) {
     console.log(chrome.windows.getCurrent((x) => console.log(x)));
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {

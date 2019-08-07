@@ -48,7 +48,7 @@ function renderMessage(message) {
 
 
 function openGitRepo() {
-  const url = 'https://github.com/skortchmark9/reselect-devtools-extension';
+  const url = 'https://github.com/skortchmark9/reselect-tools';
   window.open(url, '_blank');
 }
 
@@ -110,6 +110,7 @@ export default class App extends Component {
     this.refreshGraph = this.refreshGraph.bind(this);
     this.toggleDock = this.toggleDock.bind(this);
     this.paintNWorst = this.paintNWorst.bind(this);
+    this.resetRecomputations = this.resetRecomputations.bind(this);
   }
 
   componentDidMount() {
@@ -117,11 +118,17 @@ export default class App extends Component {
   }
 
   refreshGraph() {
+    this.baseRefreshGraph(false);
+  }
+  baseRefreshGraph(resetRecomputations) {
     this.sg && this.sg.reset();
     this.resetSelectorData();
-    this.props.actions.getSelectorGraph();
-  }
+    this.props.actions.getSelectorGraph(resetRecomputations);
 
+  }
+  resetRecomputations() {
+    this.baseRefreshGraph(true);
+  }
   paintNWorst(n) {
     this.resetSelectorData();
     this.sg.highlightNMostRecomputed(n);
@@ -194,6 +201,7 @@ export default class App extends Component {
           onRefresh={this.refreshGraph}
           onHelp={openGitRepo}
           onPaintWorst={this.paintNWorst}
+          onResetRecomputations={this.resetRecomputations}
         />
         { this.renderContent() }
       </div>
