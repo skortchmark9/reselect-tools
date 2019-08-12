@@ -138,6 +138,8 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
 if (typeof window !== 'undefined') {
   window.__RESELECT_TOOLS__ = {
     selectorGraph,
-    checkSelector
+    checkSelector,
+    _allSelectors,
+    version: '0.0.8',
   }
 }

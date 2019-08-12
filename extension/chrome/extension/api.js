@@ -12,7 +12,7 @@ function evalPromise(str) {
   });
 }
 
-function execute(strings, ...keys) {
+async function execute(strings, ...keys) {
   const lastIndex = strings.length - 1;
   const vanilla = strings
     .slice(0, lastIndex)
@@ -23,7 +23,7 @@ function execute(strings, ...keys) {
 }
 
 
-export function checkSelector(id) {
+export async function checkSelector(id) {
   return execute`
     const __reselect_last_check = window.__RESELECT_TOOLS__.checkSelector('${id}');
     console.log(__reselect_last_check);
@@ -31,7 +31,7 @@ export function checkSelector(id) {
   `;
 }
 
-export function selectorGraph(resetRecomputations) {
+export async function selectorGraph(resetRecomputations) {
   let resetStr = '';
   if (resetRecomputations) {
     const expr = `
@@ -47,7 +47,14 @@ export function selectorGraph(resetRecomputations) {
   `;
 }
 
-export function resetRecomputations() {
+export async function getLibVersion() {
+  return execute`
+    return window.__RESELECT_TOOLS__.version;  
+  `;
+}
+
+
+export async function resetRecomputations() {
   const str = `(function() {
   })();`;
   return evalPromise(str);
