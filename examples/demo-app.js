@@ -63,7 +63,7 @@ update();
 function update() {
   const currentUserDiv = document.getElementById('current-user');
   selectorGraph();
-  currentUserDiv.innerHTML = `Current User: ${currentUser$(STORE).name}`;
+  currentUserDiv.innerHTML = `Current User: ${currentUser$(STORE).name}.`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {

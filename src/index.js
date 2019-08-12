@@ -140,6 +140,6 @@ if (typeof window !== 'undefined') {
     selectorGraph,
     checkSelector,
     _allSelectors,
-    version: '0.0.8',
+    version: '0.0.8'
   }
 }

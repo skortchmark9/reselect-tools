@@ -35,7 +35,7 @@ export async function selectorGraph(resetRecomputations) {
   let resetStr = '';
   if (resetRecomputations) {
     const expr = `
-    for (const selector of new Set(Object.values(window.__RESELECT_TOOLS__.selectorGraph().nodes))) {
+    for (const selector of window.__RESELECT_TOOLS__._allSelectors) {
       selector.resetRecomputations && selector.resetRecomputations();
     };
     `;
@@ -49,13 +49,6 @@ export async function selectorGraph(resetRecomputations) {
 
 export async function getLibVersion() {
   return execute`
-    return window.__RESELECT_TOOLS__.version || null;  
+    return JSON.stringify(window.__RESELECT_TOOLS__.version);
   `;
-}
-
-
-export async function resetRecomputations() {
-  const str = `(function() {
-  })();`;
-  return evalPromise(str);
 }
