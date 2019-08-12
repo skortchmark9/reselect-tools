@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import Root from '../../app/containers/Root';
 import './reselect-tools-app.css';
 
-import * as api from './api';
+import * as realApi from './api';
 
 import createStore from '../../app/store/configureStore';
 import createApiMiddleware from '../../app/utils/apiMiddleware';
@@ -32,13 +32,13 @@ const mockApi = {
     const f = { id: 'f', recomputations: 6, isNamed: true };
     return { nodes: { a, b, c, d, e, f }, edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }] };
   },
-  getLibVersion: async () => '0.0.7',
+  getLibVersion: async () => '0.0.8',
 };
 
+const useMock = false;
+const api = useMock ? mockApi : realApi;
 
 const apiMiddleware = createApiMiddleware(api);
-// const apiMiddleware = createApiMiddleware(window.location.origin === 'http://localhost:8000' ? mockApi : api);
-
 
 async function go() {
   const version = await api.getLibVersion();

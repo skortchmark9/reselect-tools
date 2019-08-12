@@ -1,6 +1,6 @@
 
 export function greaterThan(v1, v2) {
-  if (v1 === undefined) {
+  if (!v1) {
     v1 = '0.0.7'; // we only started doing this in 0.0.8
   }
 

@@ -49,7 +49,7 @@ export async function selectorGraph(resetRecomputations) {
 
 export async function getLibVersion() {
   return execute`
-    return window.__RESELECT_TOOLS__.version;  
+    return window.__RESELECT_TOOLS__.version || null;  
   `;
 }
 

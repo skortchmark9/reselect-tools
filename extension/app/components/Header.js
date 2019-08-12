@@ -30,6 +30,7 @@ class NumberButton extends Component {
     defaultValue: PropTypes.number,
     onClick: PropTypes.func,
     numbers: PropTypes.array.isRequired,
+    children: PropTypes.node.isRequired,
   }
   constructor(props) {
     super(props);
@@ -42,11 +43,8 @@ class NumberButton extends Component {
     this.setState({ value: e.target.value.toString() });
     e.stopPropagation();
   }
-  onClickWithNumber(e) {
+  onClickWithNumber() {
     this.props.onClick(parseInt(this.state.value, 10));
-  }
-  stopPropagation(e) {
-    e.stopPropagation();
   }
   render() {
     const { numbers, children, ...other } = this.props;
@@ -73,7 +71,13 @@ class NumberButton extends Component {
 }
 
 
-export default function Header({ onRefresh, onResetRecomputations, onHelp, onPaintWorst }) {
+export default function Header({
+  onRefresh,
+  onResetRecomputations,
+  onHelp,
+  onPaintWorst,
+  supportsRefreshRecomputations,
+}) {
   return (
     <header style={styles.buttonBar}>
       <Button
@@ -81,10 +85,12 @@ export default function Header({ onRefresh, onResetRecomputations, onHelp, onPai
         Icon={RefreshIcon}
         onClick={onRefresh}
       >Refresh Selector Graph</Button>
-      <Button
-        Icon={Clear}
-        onClick={onResetRecomputations}
-      >Reset Recomputations</Button>
+      { supportsRefreshRecomputations ?
+        <Button
+          Icon={Clear}
+          onClick={onResetRecomputations}
+        >Reset Recomputations</Button> : null
+      }
       <NumberButton
         Icon={FindReplace}
         onClick={onPaintWorst}
@@ -107,4 +113,5 @@ Header.propTypes = {
   onHelp: PropTypes.func,
   onPaintWorst: PropTypes.func,
   onResetRecomputations: PropTypes.func,
+  supportsRefreshRecomputations: PropTypes.bool
 };
