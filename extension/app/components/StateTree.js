@@ -1,7 +1,7 @@
 import JSONTree from 'react-json-tree';
 import React, { PropTypes } from 'react';
 
-const shouldExpandNode = (keyName, data, level) => false;
+const shouldExpandNode = (keyName, data, level) => level === 0;
 
 const isObject = o => typeof o === 'object';
 

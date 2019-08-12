@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import Button from 'remotedev-app/lib/components/Button';
 import MdHelp from 'react-icons/lib/md/help';
 import FindReplace from 'react-icons/lib/md/find-replace';
+import Clear from 'react-icons/lib/md/clear';
 import RefreshIcon from 'react-icons/lib/md/refresh';
 import styles from 'remotedev-app/lib/styles';
 
@@ -18,6 +19,10 @@ const headerStyles = {
     color: 'white',
     outline: 'none',
   },
+  helpButton: {
+    flexGrow: 0,
+    maxWidth: '40px',
+  },
 };
 
 class NumberButton extends Component {
@@ -25,6 +30,7 @@ class NumberButton extends Component {
     defaultValue: PropTypes.number,
     onClick: PropTypes.func,
     numbers: PropTypes.array.isRequired,
+    children: PropTypes.node.isRequired,
   }
   constructor(props) {
     super(props);
@@ -37,11 +43,8 @@ class NumberButton extends Component {
     this.setState({ value: e.target.value.toString() });
     e.stopPropagation();
   }
-  onClickWithNumber(e) {
+  onClickWithNumber() {
     this.props.onClick(parseInt(this.state.value, 10));
-  }
-  stopPropagation(e) {
-    e.stopPropagation();
   }
   render() {
     const { numbers, children, ...other } = this.props;
@@ -68,7 +71,13 @@ class NumberButton extends Component {
 }
 
 
-export default function Header({ onRefresh, onHelp, onPaintWorst }) {
+export default function Header({
+  onRefresh,
+  onResetRecomputations,
+  onHelp,
+  onPaintWorst,
+  supportsRefreshRecomputations,
+}) {
   return (
     <header style={styles.buttonBar}>
       <Button
@@ -76,10 +85,12 @@ export default function Header({ onRefresh, onHelp, onPaintWorst }) {
         Icon={RefreshIcon}
         onClick={onRefresh}
       >Refresh Selector Graph</Button>
-      <Button
-        Icon={MdHelp}
-        onClick={onHelp}
-      >Help</Button>
+      { supportsRefreshRecomputations ?
+        <Button
+          Icon={Clear}
+          onClick={onResetRecomputations}
+        >Reset Recomputations</Button> : null
+      }
       <NumberButton
         Icon={FindReplace}
         onClick={onPaintWorst}
@@ -88,7 +99,11 @@ export default function Header({ onRefresh, onHelp, onPaintWorst }) {
         <span>Select</span>
         <span>Most Recomputed</span>
       </NumberButton>
-
+      <Button
+        style={headerStyles.helpButton}
+        Icon={MdHelp}
+        onClick={onHelp}
+      />
     </header>
   );
 }
@@ -97,4 +112,6 @@ Header.propTypes = {
   onRefresh: PropTypes.func,
   onHelp: PropTypes.func,
   onPaintWorst: PropTypes.func,
+  onResetRecomputations: PropTypes.func,
+  supportsRefreshRecomputations: PropTypes.bool
 };

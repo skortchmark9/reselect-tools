@@ -1,58 +1,100 @@
 var { selectorGraph } = ReselectTools;
 var { createSelector } = Reselect;
-ReselectTools.getStateWith(() => STORE);
 
 var STORE = {
   data: {
     users: {
-      '1': {
-        id: '1',
+      'bob': {
+        id: 'bob',
         name: 'bob',
-        pets: ['a', 'b'],
+        age: 24,
+        pets: ['fluffy', 'paws'],
       },
-      '2': {
-        id: '2',
+      'alice': {
+        id: 'alice',
         name: 'alice',
-        pets: ['a'],
+        age: 22,
+        pets: ['fluffy'],
       }
     },
     pets: {
-      'a': {
+      'fluffy': {
         name: 'fluffy',
       },
-      'b': {
+      'paws': {
         name: 'paws',
       }
     }
   },
   ui: {
-    currentUser: '1',
+    currentUser: 'alice',
   }
 };
 
-const data$ = (state) => state.data;
 const ui$ = (state) => state.ui;
-var users$ = createSelector(data$, (data) => data.users);
-var pets$ = createSelector(data$, ({ pets }) => pets);
-var currentUser$ = createSelector(ui$, users$, (ui, users) => users[ui.currentUser]);
+const users$ = (state) => state.data.users;
+const pets$ = (state) => state.data.pets;
+const currentUser$ = createSelector(ui$, users$, (ui, users) => users[ui.currentUser]);
 
-var currentUserPets$ = createSelector(currentUser$, pets$, (currentUser, pets) => currentUser.pets.map((petId) => pets[petId]));
+const currentUserPets$ = createSelector(currentUser$, pets$, (currentUser, pets) => currentUser.pets.map((petId) => pets[petId]));
+const currentUserAge$ = createSelector(currentUser$, (currentUser) => currentUser.age);
 
 const random$ = (state) => 1;
 const thingy$ = createSelector(random$, (number) => number + 1);
 
 const selectors = {
-  data$,
   ui$,
   users$,
   pets$,
   currentUser$,
   currentUserPets$,
+  currentUserAge$,
   random$,
   thingy$,
 };
 
 ReselectTools.registerSelectors(selectors);
+ReselectTools.getStateWith(() => STORE);
 
 
 drawCytoscapeGraph(selectorGraph());
+update();
+
+function update() {
+  const currentUserDiv = document.getElementById('current-user');
+  selectorGraph();
+  currentUserDiv.innerHTML = `Current User: ${currentUser$(STORE).name}.`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const updateBobAge = () => {
+    STORE = Object.assign({}, STORE, {
+      data: Object.assign({}, STORE.data, {
+        users: Object.assign({}, STORE.data.users, {
+          bob: Object.assign({}, STORE.data.users.bob, {
+            age: STORE.data.users.bob.age + 1
+          })
+        })
+      })
+    });
+
+    update();
+  };
+
+  const updateAliceAge = () => {
+    STORE = Object.assign({}, STORE, {
+      data: Object.assign({}, STORE.data, {
+        users: Object.assign({}, STORE.data.users, {
+          alice: Object.assign({}, STORE.data.users.alice, {
+            age: STORE.data.users.alice.age + 1
+          })
+        })
+      })
+    });
+
+    update();
+  };
+
+  document.getElementById('incr-bob-age').addEventListener('click', updateBobAge);
+  document.getElementById('incr-alice-age').addEventListener('click', updateAliceAge);
+});

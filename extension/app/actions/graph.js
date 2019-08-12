@@ -25,6 +25,6 @@ export function getSelectorGraphSuccess(graph) {
   return { type: types.GET_SELECTOR_GRAPH_SUCCESS, payload: { graph } };
 }
 
-export function getSelectorGraph() {
-  return { type: types.GET_SELECTOR_GRAPH };
+export function getSelectorGraph(resetRecomputations = false) {
+  return { type: types.GET_SELECTOR_GRAPH, payload: { resetRecomputations }};
 }

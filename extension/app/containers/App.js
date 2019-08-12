@@ -13,6 +13,10 @@ import Header from '../components/Header';
 
 import * as SelectorActions from '../actions/graph';
 
+import {
+  supportsRefreshRecomputations$,
+  checkedSelector$
+} from '../selectors/selectors';
 
 const contentStyles = {
   content: {
@@ -48,34 +52,9 @@ function renderMessage(message) {
 
 
 function openGitRepo() {
-  const url = 'https://github.com/skortchmark9/reselect-devtools-extension';
+  const url = 'https://github.com/skortchmark9/reselect-tools';
   window.open(url, '_blank');
 }
-
-const checkedSelector$ = (state) => {
-  const { checkedSelectorId, nodes, edges } = state.graph;
-  const selector = nodes[checkedSelectorId];
-  if (!selector) return;
-
-  // this is a bit ugly because it relies on edges being in order.
-  const dependencies = edges.filter(edge => edge.from === checkedSelectorId);
-  const dependencyIds = dependencies.map(edge => edge.to);
-
-  if (!selector.inputs) {
-    return selector;
-  }
-
-  const { inputs } = selector;
-  if (dependencyIds.length !== inputs.length) {
-    console.error(`Uh oh, inputs and edges out of sync on ${checkedSelectorId}`);
-  }
-
-  const zipped = [];
-  for (let i = 0; i < dependencyIds.length; i++) {
-    zipped.push([dependencyIds[i], inputs[i]]);
-  }
-  return { ...selector, zipped };
-};
 
 
 const RecomputationsTotal = ({ nodes }) => {
@@ -84,10 +63,12 @@ const RecomputationsTotal = ({ nodes }) => {
   return <h2 style={contentStyles.recomputations}>{total} Recomputations</h2>;
 };
 
+
 @connect(
   state => ({
     graph: state.graph,
     checkedSelector: checkedSelector$(state),
+    supportsRefreshRecomputations: supportsRefreshRecomputations$(state),
   }),
   dispatch => ({
     actions: bindActionCreators(SelectorActions, dispatch)
@@ -99,6 +80,7 @@ export default class App extends Component {
     actions: PropTypes.object.isRequired,
     graph: PropTypes.object,
     checkedSelector: PropTypes.object,
+    supportsRefreshRecomputations: PropTypes.bool,
   };
 
   constructor(props) {
@@ -110,6 +92,7 @@ export default class App extends Component {
     this.refreshGraph = this.refreshGraph.bind(this);
     this.toggleDock = this.toggleDock.bind(this);
     this.paintNWorst = this.paintNWorst.bind(this);
+    this.resetRecomputations = this.resetRecomputations.bind(this);
   }
 
   componentDidMount() {
@@ -117,11 +100,17 @@ export default class App extends Component {
   }
 
   refreshGraph() {
+    this.baseRefreshGraph(false);
+  }
+  baseRefreshGraph(resetRecomputations) {
     this.sg && this.sg.reset();
     this.resetSelectorData();
-    this.props.actions.getSelectorGraph();
-  }
+    this.props.actions.getSelectorGraph(resetRecomputations);
 
+  }
+  resetRecomputations() {
+    this.baseRefreshGraph(true);
+  }
   paintNWorst(n) {
     this.resetSelectorData();
     this.sg.highlightNMostRecomputed(n);
@@ -172,7 +161,7 @@ export default class App extends Component {
           <SelectorGraph
             checkSelector={this.handleCheckSelector}
             selector={checkedSelector}
-            ref={sg => this.sg = sg}
+            ref={(sg) => { this.sg = sg; }}
             {...graph}
           />
         </div>
@@ -194,6 +183,8 @@ export default class App extends Component {
           onRefresh={this.refreshGraph}
           onHelp={openGitRepo}
           onPaintWorst={this.paintNWorst}
+          onResetRecomputations={this.resetRecomputations}
+          supportsRefreshRecomputations={this.props.supportsRefreshRecomputations}
         />
         { this.renderContent() }
       </div>

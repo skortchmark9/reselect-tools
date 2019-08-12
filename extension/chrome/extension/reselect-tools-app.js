@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom';
 import Root from '../../app/containers/Root';
 import './reselect-tools-app.css';
 
-import * as api from './page-api';
+import * as realApi from './api';
 
 import createStore from '../../app/store/configureStore';
 import createApiMiddleware from '../../app/utils/apiMiddleware';
 
-const checkSelector = (id) => {
+const checkSelector = async (id) => {
   if (id === 'c') {
     return Promise.resolve({ inputs: [1], output: {hey: 'hey'}, id, name: id });
   }
@@ -23,25 +23,33 @@ const checkSelector = (id) => {
 
 const mockApi = {
   checkSelector,
-  selectorGraph: () => {
+  selectorGraph: async () => {
     const a = { id: 'a', recomputations: 10, isNamed: true };
     const b = { id: 'b', recomputations: 10, isNamed: true };
     const c = { id: 'c', recomputations: 10, isNamed: true };
     const d = { id: 'd', recomputations: 2, isNamed: true };
     const e = { id: 'e', recomputations: 4, isNamed: true };
     const f = { id: 'f', recomputations: 6, isNamed: true };
-    return Promise.resolve({ nodes: { a, b, c, d, e, f }, edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }] });
+    return { nodes: { a, b, c, d, e, f }, edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }] };
   },
+  getLibVersion: async () => '0.0.8',
 };
 
+const useMock = false;
+const api = useMock ? mockApi : realApi;
 
 const apiMiddleware = createApiMiddleware(api);
-// const apiMiddleware = createApiMiddleware(window.location.origin === 'http://localhost:8000' ? mockApi : api);
 
+async function go() {
+  const version = await api.getLibVersion();
+  const initialState = {
+    version,
+  };
 
-const initialState = {};
+  ReactDOM.render(
+    <Root store={createStore(initialState, apiMiddleware)} />,
+    document.querySelector('#root')
+  );
+}
 
-ReactDOM.render(
-  <Root store={createStore(initialState, apiMiddleware)} />,
-  document.querySelector('#root')
-);
+go();
