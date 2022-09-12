@@ -217,7 +217,7 @@ The dev tools bind to your app via this global:
     checkSelector
   }
 ```
-Even without the devtools, you can call ```__RESELECT_TOOLS__.checkSelector('mySelector$')``` from the developer console or ```__RESLECT_TOOLS__.selectorGraph()``` to see what's going on. If the JSON output of the graph is hard to parse, there's an example of how to create a visual selector graph [here](tests/your-app.js).
+Even without the devtools, you can call ```__RESELECT_TOOLS__.checkSelector('mySelector$')``` from the developer console or ```__RESELECT_TOOLS__.selectorGraph()``` to see what's going on. If the JSON output of the graph is hard to parse, there's an example of how to create a visual selector graph [here](tests/your-app.js).
 
 
 ## License
