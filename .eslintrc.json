@@ -3,7 +3,7 @@
     "browser": true,
     "node": true,
     "mocha": true,
-    "es6": true,
+    "es6": true
   },
   "extends": "eslint:recommended",
   "parserOptions": {
@@ -12,15 +12,26 @@
   "rules": {
     "array-bracket-spacing": [2, "always"],
     "eol-last": 2,
-    "indent": [2, 2, {
-      "SwitchCase": 1
-    }],
+    "indent": [
+      2,
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
     "no-multiple-empty-lines": 2,
     "object-curly-spacing": [2, "always"],
-    "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
+    "quotes": [
+      2,
+      "single",
+      { "avoidEscape": true, "allowTemplateLiterals": true }
+    ],
     "semi": [2, "never"],
     "strict": 0,
     "space-before-blocks": [2, "always"],
-    "space-before-function-paren": [2, {"anonymous":"always","named":"never"}]
+    "space-before-function-paren": [
+      2,
+      { "anonymous": "always", "named": "never" }
+    ]
   }
 }
