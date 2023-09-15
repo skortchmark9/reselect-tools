@@ -86,8 +86,9 @@ export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
   const ret = { dependencies, recomputations, isNamed, selectorName };
   if (_getState) {
     const extra = {} as {
-      inputs: RegisteredSelector[];
+      inputs: unknown[];
       output: ReturnType<RegisteredSelector>;
+      error: string;
     };
     const state = _getState();
 
@@ -96,11 +97,11 @@ export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
 
       try {
         extra.output = selector(state);
-      } catch (e) {
-        extra.error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${e}`;
+      } catch (err) {
+        extra.error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${err}`;
       }
-    } catch (e) {
-      extra.error = `checkSelector: error getting inputs of selector ${selectorName}. The error was:\n${e}`;
+    } catch (err) {
+      extra.error = `checkSelector: error getting inputs of selector ${selectorName}. The error was:\n${err}`;
     }
 
     Object.assign(ret, extra);
@@ -109,18 +110,14 @@ export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
   return ret;
 };
 
-export function getStateWith(stateGetter) {
+export const getStateWith = (stateGetter: UnknownFunction) => {
   _getState = stateGetter;
-}
+};
 
-function _sumString(str) {
-  return Array.from(str.toString()).reduce(
-    (sum, char) => char.charCodeAt(0) + sum,
-    0
-  );
-}
+const _sumString = (str: UnknownFunction) =>
+  Array.from(str.toString()).reduce((sum, char) => char.charCodeAt(0) + sum, 0);
 
-const defaultSelectorKey = selector => {
+const defaultSelectorKey = (selector: RegisteredSelector) => {
   if (selector.selectorName) {
     return selector.selectorName;
   }
@@ -137,7 +134,7 @@ const defaultSelectorKey = selector => {
 
 export function selectorGraph(selectorKey = defaultSelectorKey) {
   const graph = { nodes: {}, edges: [] };
-  const addToGraph = selector => {
+  const addToGraph = (selector: RegisteredSelector) => {
     const name = selectorKey(selector);
     if (graph.nodes[name]) return;
     const { recomputations, isNamed } = checkSelector(selector);
@@ -147,14 +144,14 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
       name,
     };
 
-    let dependencies = selector.dependencies || [];
+    const dependencies = selector.dependencies || [];
     dependencies.forEach(dependency => {
       addToGraph(dependency);
       graph.edges.push({ from: name, to: selectorKey(dependency) });
     });
   };
 
-  for (let selector of _allSelectors) {
+  for (const selector of _allSelectors) {
     addToGraph(selector);
   }
   return graph;
