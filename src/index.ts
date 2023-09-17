@@ -1,10 +1,17 @@
+import type { Selector } from 'reselect'
 import { createSelector } from 'reselect'
-import { Extra, ObjectSelectors, RegisteredSelector, ResultSelector, UnknownFunction } from './types'
+import type {
+  AnyFunction,
+  Extra,
+  Graph,
+  ObjectSelectors,
+  RegisteredSelector
+} from './types'
 
 let _getState: (() => unknown) | null = null
 let _allSelectors = new Set<RegisteredSelector>()
 
-const _isFunction = (func: unknown): func is UnknownFunction =>
+const _isFunction = (func: unknown): func is AnyFunction =>
   typeof func === 'function'
 
 /*
@@ -12,29 +19,25 @@ const _isFunction = (func: unknown): func is UnknownFunction =>
  * It will be removed in future versions.
  *
  */
-export const createSelectorWithDependencies = (
+export function createSelectorWithDependencies(
   ...args: Parameters<typeof createSelector>
-) => createSelector(...args)
+) {
+  return createSelector(...args)
+}
 
-const _isMemoizedSelector = (
-  selector: UnknownFunction
-): selector is ResultSelector => 'resultFunc' in selector
-
-const _isSelector = (
-  selector: ResultSelector | undefined
-): selector is ResultSelector =>
-  !!selector && (_isMemoizedSelector(selector) || _isFunction(selector))
+const _isSelector = (selector: unknown): selector is Selector =>
+  (!!selector && typeof selector === 'object' && 'resultFunc' in selector) ||
+  _isFunction(selector)
 
 const _addSelector = <S extends RegisteredSelector>(selector: S) => {
   _allSelectors.add(selector)
 
-  const dependencies =
-    (selector.dependencies as RegisteredSelector[] | undefined) ?? []
+  const dependencies = selector.dependencies ?? []
   dependencies.forEach(_addSelector)
 }
 
-export const registerSelectors = <S extends ObjectSelectors>(selectors: S) => {
-  (Object.keys(selectors) satisfies (keyof S)[]).forEach(name => {
+export function registerSelectors<S extends ObjectSelectors>(selectors: S) {
+  Object.keys(selectors).forEach(name => {
     const selector = selectors[name]
     if (_isSelector(selector)) {
       selector.selectorName = name
@@ -48,11 +51,11 @@ export function reset() {
   _allSelectors = new Set()
 }
 
-export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
+export function checkSelector(selector: RegisteredSelector) {
   if (typeof selector === 'string') {
     for (const possibleSelector of _allSelectors) {
       if (possibleSelector.selectorName === selector) {
-        selector = possibleSelector as S
+        selector = possibleSelector
         break
       }
     }
@@ -60,7 +63,9 @@ export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
 
   if (!_isFunction(selector)) {
     throw new Error(
-      `Selector ${selector as string} is not a function...has it been registered?`
+      `Selector ${JSON.stringify(
+        selector
+      )} is not a function...has it been registered?`
     )
   }
 
@@ -73,7 +78,7 @@ export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
 
   const ret = { dependencies, recomputations, isNamed, selectorName }
   if (_getState) {
-    const extra: Extra = {} as Extra
+    const extra = {} as Extra
     const state = _getState()
 
     try {
@@ -81,11 +86,15 @@ export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
 
       try {
         extra.output = selector(state)
-      } catch (err) {
-        extra.error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${err as string}`
+      } catch (e) {
+        extra.error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${JSON.stringify(
+          e
+        )}`
       }
-    } catch (err) {
-      extra.error = `checkSelector: error getting inputs of selector ${selectorName}. The error was:\n${err as string}`
+    } catch (e) {
+      extra.error = `checkSelector: error getting inputs of selector ${selectorName}. The error was:\n${JSON.stringify(
+        e
+      )}`
     }
 
     Object.assign(ret, extra)
@@ -94,12 +103,16 @@ export const checkSelector = <S extends RegisteredSelector>(selector: S) => {
   return ret
 }
 
-export const getStateWith = (stateGetter: UnknownFunction) => {
+export function getStateWith<T extends AnyFunction>(stateGetter: T) {
   _getState = stateGetter
 }
 
-const _sumString = (str: UnknownFunction) =>
-  Array.from(str.toString()).reduce((sum, char) => char.charCodeAt(0) + sum, 0)
+function _sumString(str: AnyFunction) {
+  return Array.from(str.toString()).reduce(
+    (sum, char) => char.charCodeAt(0) + sum,
+    0
+  )
+}
 
 const defaultSelectorKey = (selector: RegisteredSelector) => {
   if (selector.selectorName) {
@@ -111,44 +124,32 @@ const defaultSelectorKey = (selector: RegisteredSelector) => {
     return selector.name
   }
 
-  return (selector.dependencies ?? []).reduce((base, dep) => {
-    return base + _sumString(dep)
-  }, (selector.resultFunc ? selector.resultFunc : selector).toString())
-}
-
-export interface Graph {
-  nodes: Record<
-    string,
-    {
-      recomputations: number | null;
-      isNamed: boolean;
-      name: string;
-    }
-  >;
-  edges: {
-    from: string;
-    to: string;
-  }[];
+  return (selector.dependencies ?? []).reduce(
+    (base, dep) => {
+      return base + _sumString(dep)
+    },
+    (selector.resultFunc ? selector.resultFunc : selector).toString()
+  )
 }
 
 export function selectorGraph(selectorKey = defaultSelectorKey) {
   const graph: Graph = { nodes: {}, edges: [] }
-  const addToGraph = (selector: RegisteredSelector) => {
+  const addToGraph = <S extends RegisteredSelector>(selector: S) => {
     const name = selectorKey(selector)
     if (graph.nodes[name]) return
     const { recomputations, isNamed } = checkSelector(selector)
     graph.nodes[name] = {
       recomputations,
       isNamed,
-      name,
+      name
     }
 
     const dependencies = selector.dependencies ?? []
     dependencies.forEach(dependency => {
-      addToGraph(dependency as Parameters<typeof addToGraph>[0])
+      addToGraph(dependency)
       graph.edges.push({
         from: name,
-        to: selectorKey(dependency as Parameters<typeof addToGraph>[0]),
+        to: selectorKey(dependency)
       })
     })
   }
@@ -159,12 +160,11 @@ export function selectorGraph(selectorKey = defaultSelectorKey) {
   return graph
 }
 
-
 // hack for devtools
 /* istanbul ignore if */
 if (typeof window !== 'undefined') {
   window.__RESELECT_TOOLS__ = {
     selectorGraph,
-    checkSelector,
+    checkSelector
   }
 }

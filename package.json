@@ -2,8 +2,18 @@
   "name": "reselect-tools",
   "version": "0.0.7",
   "description": "Selector Debugging Tools for Reselect.",
-  "main": "lib/index.js",
+  "main": "./dist/cjs/index.cjs",
   "jsnext:main": "es/index.js",
+  "module": "./dist/reselect-tools.legacy-esm.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/reselect-tools.mjs",
+      "default": "./dist/cjs/index.cjs"
+    }
+  },
   "files": [
     "lib",
     "src",
@@ -15,16 +25,19 @@
   },
   "scripts": {
     "compile:commonjs": "better-npm-run compile:commonjs",
-    "compile:umdmin": "uglifyjs dist/reselect-tools.js -mt -o dist/reselect-tools.min.js",
+    "compile:umdmin": "uglifyjs dist/reselect-tools.js -m -o dist/reselect-tools.min.js",
     "compile:umd": "better-npm-run compile:umd",
     "compile:es": "babel -d es/ src/",
     "compile": "npm run compile:commonjs && npm run compile:umd && npm run compile:umdmin && npm run compile:es",
     "lint": "eslint src test",
+    "clean": "rimraf dist",
     "lint-fix": "eslint --fix src test",
-    "prepublish": "npm run compile",
+    "prepublish": "npm run build",
     "test": "better-npm-run test",
     "test:cov": "better-npm-run test:cov",
-    "example": "opn http://localhost:9080/examples/demo.html && static-server"
+    "example": "opn http://localhost:9080/examples/demo.html && static-server",
+    "type-check": "tsc -b tsconfig.json",
+    "build": "tsup && tsc -b tsconfig.build.json"
   },
   "betterScripts": {
     "test": {
@@ -78,11 +91,15 @@
     "codecov.io": "^0.1.6",
     "coveralls": "^2.11.4",
     "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "mkdirp": "^0.5.1",
     "mocha": "^2.2.5",
     "ncp": "^2.0.0",
     "nyc": "^6.4.0",
     "opn-cli": "^3.1.0",
+    "prettier": "^3.0.3",
+    "tsup": "^7.2.0",
     "typescript": "^5.2.2",
     "uglify-js": "^3.0.20"
   },
