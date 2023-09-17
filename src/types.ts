@@ -1,4 +1,4 @@
-import type { OutputSelectorFields, Selector } from 'reselect'
+import type { OutputSelectorFields, Selector, SelectorArray } from 'reselect'
 import type { checkSelector, selectorGraph } from '.'
 
 export type UnknownFunction = (...args: unknown[]) => unknown
@@ -8,21 +8,23 @@ export type AnyFunction = (...args: any[]) => unknown
 export type ResultSelector = Selector &
   Partial<OutputSelectorFields<AnyFunction, unknown>>
 
-export type ObjectSelectors = Record<
-  string,
-  ResultSelector & {
-    selectorName?: string
-  }
->
+export type ObjectSelectors = Record<string, RegisteredSelector>
 
 export type RegisteredSelector = ResultSelector & {
   selectorName?: string
 }
 
 export interface Extra {
-  inputs: unknown[]
-  output: ReturnType<RegisteredSelector>
-  error: string
+  inputs?: unknown[]
+  output?: ReturnType<RegisteredSelector>
+  error?: string
+}
+
+export interface CheckSelectorResults extends Extra {
+  dependencies: SelectorArray
+  recomputations: number | null
+  isNamed: boolean
+  selectorName: string | null
 }
 
 declare global {

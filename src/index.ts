@@ -2,6 +2,7 @@ import type { Selector } from 'reselect'
 import { createSelector } from 'reselect'
 import type {
   AnyFunction,
+  CheckSelectorResults,
   Extra,
   Graph,
   ObjectSelectors,
@@ -76,9 +77,14 @@ export function checkSelector(selector: RegisteredSelector) {
     ? selector.recomputations()
     : null
 
-  const ret = { dependencies, recomputations, isNamed, selectorName }
+  const ret: CheckSelectorResults = {
+    dependencies,
+    recomputations,
+    isNamed,
+    selectorName
+  }
   if (_getState) {
-    const extra = {} as Extra
+    const extra: Extra = {}
     const state = _getState()
 
     try {
@@ -87,14 +93,14 @@ export function checkSelector(selector: RegisteredSelector) {
       try {
         extra.output = selector(state)
       } catch (e) {
-        extra.error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${JSON.stringify(
-          e
-        )}`
+        extra.error = `checkSelector: error getting output of selector ${selectorName}. The error was:\n${
+          e instanceof TypeError ? e.message : JSON.stringify(e)
+        }`
       }
     } catch (e) {
-      extra.error = `checkSelector: error getting inputs of selector ${selectorName}. The error was:\n${JSON.stringify(
-        e
-      )}`
+      extra.error = `checkSelector: error getting inputs of selector ${selectorName}. The error was:\n${
+        e instanceof TypeError ? e.message : JSON.stringify(e)
+      }`
     }
 
     Object.assign(ret, extra)
@@ -103,7 +109,7 @@ export function checkSelector(selector: RegisteredSelector) {
   return ret
 }
 
-export function getStateWith<T extends AnyFunction>(stateGetter: T) {
+export function getStateWith<T extends AnyFunction | null>(stateGetter: T) {
   _getState = stateGetter
 }
 

@@ -33,7 +33,7 @@
     "clean": "rimraf dist",
     "lint-fix": "eslint --fix src test",
     "prepublish": "npm run build",
-    "test": "better-npm-run test",
+    "test": "vitest",
     "test:cov": "better-npm-run test:cov",
     "example": "opn http://localhost:9080/examples/demo.html && static-server",
     "type-check": "tsc -b tsconfig.json",
@@ -101,7 +101,8 @@
     "prettier": "^3.0.3",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",
-    "uglify-js": "^3.0.20"
+    "uglify-js": "^3.0.20",
+    "vitest": "^0.34.4"
   },
   "dependencies": {
     "reselect": "5.0.0-alpha.2"
