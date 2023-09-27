@@ -3,6 +3,8 @@ import { defineConfig } from 'tsup'
 
 export default defineConfig(options => {
   const commonOptions: Options = {
+    tsconfig: './tsconfig.build.json',
+    clean: true,
     entry: {
       'reselect-tools': 'src/index.ts'
     },
@@ -10,15 +12,15 @@ export default defineConfig(options => {
     ...options
   }
   return [
+    // Modern ESM
     {
       ...commonOptions,
-      // target: 'esnext',
       format: ['esm'],
       outExtension: () => ({ js: '.mjs' }),
-      // dts: { resolve: true },
-      // dts: true,
-      clean: true
+      dts: true
     },
+    // Support Webpack 4 by pointing `"module"` to a file with a `.js` extension
+    // and optional chaining compiled away
     {
       ...commonOptions,
       entry: {
@@ -28,12 +30,18 @@ export default defineConfig(options => {
       outExtension: () => ({ js: '.js' }),
       target: 'es2017'
     },
+    // CommonJS
     {
       ...commonOptions,
       entry: ['src/index.ts'],
-      format: 'cjs',
+      format: ['cjs'],
       outDir: './dist/cjs/',
-      outExtension: () => ({ js: '.cjs' })
+      outExtension: () => ({ js: `.cjs` })
+    },
+    {
+      ...commonOptions,
+      format: ['cjs'],
+      dts: { only: true, entry: ['src/index.ts'] }
     }
   ]
 })

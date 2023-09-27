@@ -9,9 +9,14 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/reselect-tools.mjs",
-      "default": "./dist/cjs/index.cjs"
+      "import": {
+        "default": "./dist/reselect-tools.mjs",
+        "types": "./dist/reselect-tools.d.mts"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
     }
   },
   "files": [
@@ -37,7 +42,7 @@
     "test:cov": "better-npm-run test:cov",
     "example": "opn http://localhost:9080/examples/demo.html && static-server",
     "type-check": "tsc -b tsconfig.json",
-    "build": "tsup && tsc -b tsconfig.build.json"
+    "build": "tsup"
   },
   "betterScripts": {
     "test": {

@@ -8,13 +8,12 @@ import {
   selectorGraph
 } from '../src/index'
 
-import { assert } from 'chai'
 import type {
   RegisteredSelector,
   ResultSelector,
   SelectorsObject
 } from 'src/types'
-import { beforeEach, expect, suite, test } from 'vitest'
+import { assert, beforeEach, suite, test } from 'vitest'
 
 beforeEach(reset)
 
@@ -31,12 +30,10 @@ suite('registerSelectors', () => {
       () => 'baz'
     ) as unknown as RegisteredSelector
     registerSelectors({ foo, bar, bazinga: baz })
-    // assert.equal(foo.selectorName, 'foo')
-    // assert.equal(bar.selectorName, 'bar')
-    // assert.equal(baz.selectorName, 'bazinga')
-    expect(foo.selectorName).equal('foo')
-    expect(bar.selectorName).equal('bar')
-    expect(baz.selectorName).equal('bazinga')
+
+    assert.equal(foo.selectorName, 'foo')
+    assert.equal(bar.selectorName, 'bar')
+    assert.equal(baz.selectorName, 'bazinga')
   })
 
   test('ignores inputs which are not selectors or functions', () => {
@@ -48,8 +45,7 @@ suite('registerSelectors', () => {
     const selectors = { foo, bar, utilities }
     registerSelectors(selectors)
 
-    expect(utilities.selectorName).toBeUndefined()
-    // assert.isUndefined(utilities.selectorName)
+    assert.isUndefined(utilities.selectorName)
   })
 
   test('ignores inputs which are null', () => {
@@ -65,17 +61,13 @@ suite('registerSelectors', () => {
     const baz = createSelector(bar, foo, () => 'bar') as RegisteredSelector
 
     registerSelectors({ foo, bar })
-    expect(foo.selectorName).equal('foo')
-    // assert.equal(foo.selectorName, 'foo')
+    assert.equal(foo.selectorName, 'foo')
 
     registerSelectors({ baz })
     registerSelectors({ hat: foo })
-    expect(foo.selectorName).equal('hat')
-    expect(bar.selectorName).equal('bar')
-    expect(baz.selectorName).equal('baz')
-    // assert.equal(foo.selectorName, 'hat')
-    // assert.equal(bar.selectorName, 'bar')
-    // assert.equal(baz.selectorName, 'baz')
+    assert.equal(foo.selectorName, 'hat')
+    assert.equal(bar.selectorName, 'bar')
+    assert.equal(baz.selectorName, 'baz')
   })
 })
 
@@ -95,8 +87,7 @@ suite('createSelectorWithDependencies', () => {
     selector2()
     // @ts-expect-error
     selector2()
-    expect(calls1).equal(calls2)
-    // assert.equal(calls1, calls2)
+    assert.equal(calls1, calls2)
   })
 })
 
@@ -112,7 +103,12 @@ suite('checkSelector', () => {
   })
 
   test('if you give it a way of getting state, it also gets inputs and outputs', () => {
-    const state = {
+    interface State {
+      foo: {
+        baz: number
+      }
+    }
+    const state: State = {
       foo: {
         baz: 1
       }
@@ -120,24 +116,18 @@ suite('checkSelector', () => {
 
     getStateWith(() => state)
 
-    const foo = (s: typeof state) => s.foo
+    const foo = (state: State) => state.foo
     const bar = createSelector(foo, foo => foo.baz)
 
     const checkedFoo = checkSelector(foo)
-    expect(checkedFoo.inputs?.length).equal(0)
-    expect(checkedFoo.output).toStrictEqual({ baz: 1 })
-    expect(checkedFoo.output).toStrictEqual(foo(state))
-    // assert.equal(checkedFoo.inputs.length, 0)
-    // assert.deepEqual(checkedFoo.output, { baz: 1 })
-    // assert.deepEqual(checkedFoo.output, foo(state))
+    assert.equal(checkedFoo.inputs?.length, 0)
+    assert.deepEqual(checkedFoo.output, { baz: 1 })
+    assert.deepEqual(checkedFoo.output, foo(state))
 
     const checkedBar = checkSelector(bar)
-    expect(checkedBar.inputs).toStrictEqual([{ baz: 1 }])
-    expect(checkedBar.output).equal(1)
-    expect(checkedBar.output).toStrictEqual(bar(state))
-    // assert.deepEqual(checkedBar.inputs, [{ baz: 1 }])
-    // assert.equal(checkedBar.output, 1)
-    // assert.deepEqual(checkedBar.output, bar(state))
+    assert.deepEqual(checkedBar.inputs, [{ baz: 1 }])
+    assert.equal(checkedBar.output, 1)
+    assert.deepEqual(checkedBar.output, bar(state))
 
     getStateWith(null)
   })
@@ -150,8 +140,7 @@ suite('checkSelector', () => {
     }
     const foo = (state: State) => state.foo
     const bar = createSelector(foo, foo => foo.baz)
-    expect(bar.recomputations()).equal(0)
-    // assert.equal(bar.recomputations(), 0)
+    assert.equal(bar.recomputations(), 0)
 
     const state: State = {
       foo: {
@@ -161,11 +150,10 @@ suite('checkSelector', () => {
     getStateWith(() => state)
 
     bar(state)
-    expect(bar.recomputations()).equal(1)
-    // assert.equal(bar.recomputations(), 1)
+    assert.equal(bar.recomputations(), 1)
     bar(state)
 
-    expect(checkSelector(bar)).toStrictEqual({
+    assert.deepEqual(checkSelector(bar), {
       dependencies: [foo],
       inputs: [{ baz: 1 }],
       output: 1,
@@ -173,16 +161,8 @@ suite('checkSelector', () => {
       isNamed: false,
       selectorName: null
     })
-    // assert.deepEqual(checkSelector(bar), {
-    //   dependencies: [foo],
-    //   inputs: [{ baz: 1 }],
-    //   output: 1,
-    //   recomputations: 1,
-    //   isNamed: false,
-    //   selectorName: null
-    // })
 
-    const newState = {
+    const newState: State = {
       foo: {
         baz: 2
       }
@@ -190,11 +170,10 @@ suite('checkSelector', () => {
     getStateWith(() => newState)
 
     bar(newState)
-    expect(bar.recomputations()).equal(2)
-    // assert.equal(bar.recomputations(), 2)
+    assert.equal(bar.recomputations(), 2)
 
     bar(newState)
-    expect(checkSelector(bar)).toStrictEqual({
+    assert.deepEqual(checkSelector(bar), {
       dependencies: [foo],
       inputs: [{ baz: 2 }],
       output: 2,
@@ -202,14 +181,6 @@ suite('checkSelector', () => {
       isNamed: false,
       selectorName: null
     })
-    // assert.deepEqual(checkSelector(bar), {
-    //   dependencies: [foo],
-    //   inputs: [{ baz: 2 }],
-    //   output: 2,
-    //   recomputations: 2,
-    //   isNamed: false,
-    //   selectorName: null
-    // })
   })
 
   test("it allows you to pass in a string name of a selector if you've registered", () => {
@@ -220,9 +191,8 @@ suite('checkSelector', () => {
     const bar = createSelector(foo, foo => foo + 1)
     registerSelectors({ bar })
     getStateWith(() => ({ foo: 1 }))
-    // @ts-expect-error
     const checked = checkSelector('bar')
-    expect(checked).toStrictEqual({
+    assert.deepEqual(checked, {
       dependencies: [foo],
       inputs: [1],
       output: 2,
@@ -230,14 +200,6 @@ suite('checkSelector', () => {
       isNamed: true,
       selectorName: 'bar'
     })
-    // assert.deepEqual(checked, {
-    //   dependencies: [foo],
-    //   inputs: [1],
-    //   output: 2,
-    //   recomputations: 0,
-    //   isNamed: true,
-    //   selectorName: 'bar'
-    // })
   })
 
   test('it throws if you try to check a non-existent selector', () => {
@@ -247,15 +209,12 @@ suite('checkSelector', () => {
     const foo = (state: State) => state.foo
     const bar = createSelector(foo, foo => foo + 1)
     registerSelectors({ bar })
-    // @ts-expect-error
-    expect(() => checkSelector('baz')).throws()
-    // assert.throws(() => checkSelector('baz'))
+    assert.throws(() => checkSelector('baz'))
   })
 
   test('it throws if you try to check a non-function', () => {
     // @ts-expect-error
-    expect(() => checkSelector(1)).throws()
-    // assert.throws(() => checkSelector(1))
+    assert.throws(() => checkSelector(1))
   })
 
   test('it tells you whether or not a selector has been registered', () => {
@@ -263,14 +222,11 @@ suite('checkSelector', () => {
     const two$ = createSelector(one$, one => one + 1)
     registerSelectors({ one$ })
 
-    expect(checkSelector(() => 1).isNamed).equal(false)
-    // assert.equal(checkSelector(() => 1).isNamed, false)
+    assert.equal(checkSelector(() => 1).isNamed, false)
 
-    expect(checkSelector(two$).isNamed).equal(false)
-    // assert.equal(checkSelector(two$).isNamed, false)
+    assert.equal(checkSelector(two$).isNamed, false)
     registerSelectors({ two$ })
-    expect(checkSelector(two$).isNamed).equal(true)
-    // assert.equal(checkSelector(two$).isNamed, true)
+    assert.equal(checkSelector(two$).isNamed, true)
   })
 
   test('it catches errors inside parent selector functions and exposes them', () => {
@@ -284,17 +240,11 @@ suite('checkSelector', () => {
     getStateWith(() => [])
     registerSelectors({ badSelector$ })
 
-    // @ts-expect-error
     const checked = checkSelector('badSelector$')
-    expect(checked.error).equal(
-      'checkSelector: error getting inputs of selector badSelector$. The error was:\n' +
-        "Cannot read properties of undefined (reading 'bar')"
+    assert.equal(
+      checked.error,
+      "checkSelector: error getting inputs of selector badSelector$. The error was:\nCannot read properties of undefined (reading 'bar')"
     )
-    // assert.equal(
-    //   checked.error,
-    //   'checkSelector: error getting inputs of selector badSelector$. The error was:\n' +
-    //     "TypeError: Cannot read property 'bar' of undefined"
-    // )
   })
 
   test('it catches errors inside selector functions and exposes them', () => {
@@ -307,17 +257,12 @@ suite('checkSelector', () => {
     getStateWith(() => [])
     registerSelectors({ badSelector$ })
 
-    // @ts-expect-error
     const checked = checkSelector('badSelector$')
-    expect(checked.error).equal(
+    assert.equal(
+      checked.error,
       'checkSelector: error getting output of selector badSelector$. The error was:\n' +
         "Cannot read properties of undefined (reading 'bar')"
     )
-    // assert.equal(
-    //   checked.error,
-    //   'checkSelector: error getting output of selector badSelector$. The error was:\n' +
-    //     "TypeError: Cannot read property 'bar' of undefined"
-    // )
   })
 })
 
@@ -367,10 +312,8 @@ suite('selectorGraph', () => {
 
   test('returns an empty graph if no selectors are registered', () => {
     const { edges, nodes } = selectorGraph()
-    expect(Object.keys(nodes).length).equal(0)
-    expect(edges.length).equal(0)
-    // assert.equal(Object.keys(nodes).length, 0)
-    // assert.equal(edges.length, 0)
+    assert.equal(Object.keys(nodes).length, 0)
+    assert.equal(edges.length, 0)
   })
 
   test('walks up the tree if you register a single selector', () => {
@@ -380,20 +323,16 @@ suite('selectorGraph', () => {
     const child$ = createSelector(parent, string => string)
     registerSelectors({ child$ })
     const { edges, nodes } = selectorGraph()
-    expect(Object.keys(nodes).length).equal(2)
-    expect(edges.length).equal(1)
-    // assert.equal(Object.keys(nodes).length, 2)
-    // assert.equal(edges.length, 1)
+    assert.equal(Object.keys(nodes).length, 2)
+    assert.equal(edges.length, 1)
   })
 
   test('it outputs a selector graph', () => {
     const selectors = createMockSelectors()
 
     const { edges, nodes } = selectorGraph()
-    expect(Object.keys(nodes).length).equal(Object.keys(selectors).length)
-    expect(edges.length).equal(9)
-    // assert.equal(Object.keys(nodes).length, Object.keys(selectors).length)
-    // assert.equal(edges.length, 9)
+    assert.equal(Object.keys(nodes).length, Object.keys(selectors).length)
+    assert.equal(edges.length, 9)
   })
 
   test('allows you to pass in a different selector key function', () => {
@@ -412,8 +351,7 @@ suite('selectorGraph', () => {
 
     // @ts-expect-error
     const { nodes } = selectorGraph(idxSelectorKey)
-    expect(Object.keys(nodes).length).equal(9)
-    // assert.equal(Object.keys(nodes).length, 9)
+    assert.equal(Object.keys(nodes).length, 9)
   })
 
   suite('defaultSelectorKey', () => {
@@ -422,8 +360,7 @@ suite('selectorGraph', () => {
       const { nodes } = selectorGraph()
 
       // comes from func.name for top-level vanilla selector functions.
-      expect(nodes['data$']?.recomputations).equal(null)
-      // assert.equal(nodes['data$'].recomputations, null)
+      assert.equal(nodes['data$']?.recomputations, null)
     })
 
     test('it falls back to toString on anonymous functions', () => {
@@ -434,13 +371,11 @@ suite('selectorGraph', () => {
       registerSelectors({ selector1 })
       const { nodes } = selectorGraph()
       const keys = Object.keys(nodes)
-      expect(keys.length).equal(2)
-      // assert.equal(keys.length, 2)
+      assert.equal(keys.length, 2)
 
       // [ 'selector1', 'function () {\n        return 1;\n      }' ]
       for (const key of keys) {
-        expect(key).include('1')
-        // assert.include(key, '1')
+        assert.include(key, '1')
       }
     })
 
@@ -454,16 +389,12 @@ suite('selectorGraph', () => {
       registerSelectors({ registered$, foo$ })
       const { nodes } = selectorGraph()
       const keys = Object.keys(nodes)
-      expect(keys.length).equal(3)
-      // assert.equal(keys.length, 3)
+      assert.equal(keys.length, 3)
 
       // please let's do better!
       // assert.isDefined(nodes['function () {\n        return 1;\n      }22074'])
       // Replace with:
       assert.isDefined(nodes['memoized']) // In reselect v5.0.0-alpha.2 the anonymous function has been given the name `memoized`.
-      // expect(
-      //   nodes['function () {\n        return 1;\n      }22074']
-      // ).toBeDefined()
     })
 
     test("doesn't duplicate nodes if they are different", () => {
@@ -476,8 +407,7 @@ suite('selectorGraph', () => {
       createSelector(select) // node 3
       registerSelectors({ foo$, baz: select })
       const { nodes } = selectorGraph()
-      expect(Object.keys(nodes).length).equal(2)
-      // assert.equal(Object.keys(nodes).length, 2)
+      assert.equal(Object.keys(nodes).length, 2)
     })
 
     test('it names the nodes based on entries in the registry if they are there', () => {
@@ -495,8 +425,7 @@ suite('selectorGraph', () => {
         { from: 'booya$', to: 'thingy$' },
         { from: 'booya$', to: 'currentUser$' }
       ]
-      expect(edges).deep.members(expectedEdges)
-      // assert.sameDeepMembers(edges, expectedEdges)
+      assert.sameDeepMembers(edges, expectedEdges)
     })
   })
 })

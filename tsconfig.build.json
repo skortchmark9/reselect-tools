@@ -5,5 +5,11 @@
     "emitDeclarationOnly": true,
     "rootDir": "./src"
   },
-  "exclude": ["tsup.config.ts", "vitest.config.ts", "./test", "node_modules"]
+  "exclude": [
+    "tsup.config.ts",
+    "vitest.config.ts",
+    "./test",
+    "node_modules",
+    "dist"
+  ]
 }

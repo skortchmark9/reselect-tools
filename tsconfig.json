@@ -1,29 +1,32 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
-    "noEmit": true,
     "declaration": true,
-    "lib": ["ESNext", "DOM"],
+    "downlevelIteration": false,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "lib": ["ESNext", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
-    "useUnknownInCatchVariables": true,
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
     "outDir": "./dist",
     "rootDir": "./",
     "rootDirs": ["./src"],
     "skipLibCheck": true,
     "strict": true,
-    "target": "ESNext"
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "useUnknownInCatchVariables": true
   },
   "exclude": ["node_modules", "dist"],
-  "include": ["**/*.ts","tsup.config.ts", "vitest.config.ts"]
+  "include": ["**/*.ts", "tsup.config.ts", "vitest.config.ts"]
 }
