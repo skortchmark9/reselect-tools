@@ -5,8 +5,19 @@ import type {
   CheckSelectorResults,
   Extra,
   Graph,
-  ObjectSelectors,
-  RegisteredSelector
+  RegisteredSelector,
+  SelectorsObject
+} from './types'
+export type {
+  AnyFunction,
+  CheckSelectorResults,
+  Edge,
+  Extra,
+  Graph,
+  Node,
+  RegisteredSelector,
+  ResultSelector,
+  SelectorsObject
 } from './types'
 
 let _getState: (() => unknown) | null = null
@@ -37,7 +48,7 @@ const _addSelector = <S extends RegisteredSelector>(selector: S) => {
   dependencies.forEach(_addSelector)
 }
 
-export function registerSelectors<S extends ObjectSelectors>(selectors: S) {
+export function registerSelectors<S extends SelectorsObject>(selectors: S) {
   Object.keys(selectors).forEach(name => {
     const selector = selectors[name]
     if (_isSelector(selector)) {

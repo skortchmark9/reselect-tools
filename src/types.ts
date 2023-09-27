@@ -1,14 +1,13 @@
 import type { OutputSelectorFields, Selector, SelectorArray } from 'reselect'
-import type { checkSelector, selectorGraph } from '.'
+import type { checkSelector, selectorGraph } from './index'
 
-export type UnknownFunction = (...args: unknown[]) => unknown
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyFunction = (...args: any[]) => unknown
 
 export type ResultSelector = Selector &
   Partial<OutputSelectorFields<AnyFunction, unknown>>
 
-export type ObjectSelectors = Record<string, RegisteredSelector>
+export type SelectorsObject = Record<string, RegisteredSelector>
 
 export type RegisteredSelector = ResultSelector & {
   selectorName?: string
@@ -26,6 +25,21 @@ export interface CheckSelectorResults extends Extra {
   isNamed: boolean
   selectorName: string | null
 }
+export interface Node {
+  recomputations: number | null
+  isNamed: boolean
+  name: string
+}
+
+export interface Edge {
+  from: string
+  to: string
+}
+
+export interface Graph {
+  nodes: Record<string, Node>
+  edges: Edge[]
+}
 
 declare global {
   interface Window {
@@ -34,19 +48,4 @@ declare global {
       checkSelector: typeof checkSelector
     }
   }
-}
-
-export interface Graph {
-  nodes: Record<
-    string,
-    {
-      recomputations: number | null
-      isNamed: boolean
-      name: string
-    }
-  >
-  edges: {
-    from: string
-    to: string
-  }[]
 }

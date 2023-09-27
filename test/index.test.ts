@@ -9,12 +9,16 @@ import {
 } from '../src/index'
 
 import { assert } from 'chai'
-import type { ObjectSelectors, RegisteredSelector } from 'src/types'
-import { beforeEach, describe, expect, test } from 'vitest'
+import type {
+  RegisteredSelector,
+  ResultSelector,
+  SelectorsObject
+} from 'src/types'
+import { beforeEach, expect, suite, test } from 'vitest'
 
 beforeEach(reset)
 
-describe('registerSelectors', () => {
+suite('registerSelectors', () => {
   test('allows you to name selectors', () => {
     const foo = (() => 'foo') as unknown as RegisteredSelector
     const bar = createSelector(
@@ -51,7 +55,7 @@ describe('registerSelectors', () => {
   test('ignores inputs which are null', () => {
     const foo = () => 'foo'
     const bar = createSelector(foo, () => 'bar')
-    const selectors = { foo, bar, property: null } as unknown as ObjectSelectors
+    const selectors = { foo, bar, property: null } as unknown as SelectorsObject
     registerSelectors(selectors)
   })
 
@@ -75,35 +79,36 @@ describe('registerSelectors', () => {
   })
 })
 
-describe('createSelectorWithDependencies', () => {
+suite('createSelectorWithDependencies', () => {
   test('it is just exported for legacy purposes', () => {
     const four = () => 4
     let calls1 = 0
     let calls2 = 0
     const selector1 = createSelector(four, () => calls1++)
+    // @ts-expect-error
     const selector2 = createSelectorWithDependencies(four, () => calls2++)
-
-    selector1(undefined)
-    selector1(undefined)
-    selector2(undefined)
-    selector2(undefined)
+    // @ts-expect-error
+    selector1()
+    // @ts-expect-error
+    selector1()
+    // @ts-expect-error
+    selector2()
+    // @ts-expect-error
+    selector2()
     expect(calls1).equal(calls2)
     // assert.equal(calls1, calls2)
   })
 })
 
-describe('checkSelector', () => {
+suite('checkSelector', () => {
   test("it outputs a selector's dependencies, even if it's a plain function", () => {
     const foo = () => 'foo'
     const bar = createSelector(foo, () => 'bar')
 
-    expect(checkSelector(foo).dependencies.length).equal(0)
-    // assert.equal(checkSelector(foo).dependencies.length, 0)
+    assert.equal(checkSelector(foo).dependencies.length, 0)
 
-    expect(checkSelector(bar).dependencies.length).equal(1)
-    expect(checkSelector(bar).dependencies[0]).equal(foo)
-    // assert.equal(checkSelector(bar).dependencies.length, 1)
-    // assert.equal(checkSelector(bar).dependencies[0], foo)
+    assert.equal(checkSelector(bar).dependencies.length, 1)
+    assert.equal(checkSelector(bar).dependencies[0], foo)
   })
 
   test('if you give it a way of getting state, it also gets inputs and outputs', () => {
@@ -138,12 +143,17 @@ describe('checkSelector', () => {
   })
 
   test('it returns the number of recomputations for a given selector', () => {
-    const foo = state => state.foo
+    interface State {
+      foo: {
+        baz: number
+      }
+    }
+    const foo = (state: State) => state.foo
     const bar = createSelector(foo, foo => foo.baz)
     expect(bar.recomputations()).equal(0)
     // assert.equal(bar.recomputations(), 0)
 
-    const state = {
+    const state: State = {
       foo: {
         baz: 1
       }
@@ -203,10 +213,14 @@ describe('checkSelector', () => {
   })
 
   test("it allows you to pass in a string name of a selector if you've registered", () => {
-    const foo = state => state.foo
+    interface State {
+      foo: number
+    }
+    const foo = (state: State) => state.foo
     const bar = createSelector(foo, foo => foo + 1)
     registerSelectors({ bar })
     getStateWith(() => ({ foo: 1 }))
+    // @ts-expect-error
     const checked = checkSelector('bar')
     expect(checked).toStrictEqual({
       dependencies: [foo],
@@ -227,14 +241,19 @@ describe('checkSelector', () => {
   })
 
   test('it throws if you try to check a non-existent selector', () => {
-    const foo = state => state.foo
+    interface State {
+      foo: number
+    }
+    const foo = (state: State) => state.foo
     const bar = createSelector(foo, foo => foo + 1)
     registerSelectors({ bar })
+    // @ts-expect-error
     expect(() => checkSelector('baz')).throws()
     // assert.throws(() => checkSelector('baz'))
   })
 
   test('it throws if you try to check a non-function', () => {
+    // @ts-expect-error
     expect(() => checkSelector(1)).throws()
     // assert.throws(() => checkSelector(1))
   })
@@ -255,11 +274,17 @@ describe('checkSelector', () => {
   })
 
   test('it catches errors inside parent selector functions and exposes them', () => {
-    const badParentSelector$ = state => state.foo.bar
+    interface State {
+      foo: {
+        bar: number
+      }
+    }
+    const badParentSelector$ = (state: State) => state.foo.bar
     const badSelector$ = createSelector(badParentSelector$, foo => foo)
     getStateWith(() => [])
     registerSelectors({ badSelector$ })
 
+    // @ts-expect-error
     const checked = checkSelector('badSelector$')
     expect(checked.error).equal(
       'checkSelector: error getting inputs of selector badSelector$. The error was:\n' +
@@ -273,10 +298,16 @@ describe('checkSelector', () => {
   })
 
   test('it catches errors inside selector functions and exposes them', () => {
-    const badSelector$ = state => state.foo.bar
+    interface State {
+      foo: {
+        bar: number
+      }
+    }
+    const badSelector$ = (state: State) => state.foo.bar
     getStateWith(() => [])
     registerSelectors({ badSelector$ })
 
+    // @ts-expect-error
     const checked = checkSelector('badSelector$')
     expect(checked.error).equal(
       'checkSelector: error getting output of selector badSelector$. The error was:\n' +
@@ -290,10 +321,19 @@ describe('checkSelector', () => {
   })
 })
 
-describe('selectorGraph', () => {
+suite('selectorGraph', () => {
+  interface State {
+    data: {
+      users: [{ pets: number[] }]
+      pets: number[]
+    }
+    ui: {
+      currentUser: number
+    }
+  }
   function createMockSelectors() {
-    const data$ = state => state.data
-    const ui$ = state => state.ui
+    const data$ = (state: State) => state.data
+    const ui$ = (state: State) => state.ui
     const users$ = createSelector(data$, data => data.users)
     const pets$ = createSelector(data$, ({ pets }) => pets)
     const currentUser$ = createSelector(
@@ -304,7 +344,7 @@ describe('selectorGraph', () => {
     const currentUserPets$ = createSelector(
       currentUser$,
       pets$,
-      (currentUser, pets) => currentUser.pets.map(petId => pets[petId])
+      (currentUser, pets) => currentUser!.pets.map(petId => pets[petId]!)
     )
     const random$ = () => 1
     const thingy$ = createSelector(random$, number => number + 1)
@@ -320,6 +360,7 @@ describe('selectorGraph', () => {
       thingy$,
       booya$
     }
+    // @ts-expect-error
     registerSelectors(selectors)
     return selectors
   }
@@ -356,30 +397,32 @@ describe('selectorGraph', () => {
   })
 
   test('allows you to pass in a different selector key function', () => {
-    function idxSelectorKey(selector) {
+    type DummySelector = ResultSelector & { idx: number }
+    function idxSelectorKey(selector: DummySelector) {
       return selector.idx
     }
 
     const selectors = createMockSelectors()
-    Object.keys(selectors)
-      .sort()
-      .forEach((key, i) => {
-        const selector = selectors[key]
-        selector.idx = i
-      })
+    type Keys = (keyof typeof selectors)[]
+    ;(Object.keys(selectors) as Keys).sort().forEach((key, i) => {
+      const selector = selectors[key]
+      // @ts-expect-error
+      selector.idx = i
+    })
 
+    // @ts-expect-error
     const { nodes } = selectorGraph(idxSelectorKey)
     expect(Object.keys(nodes).length).equal(9)
     // assert.equal(Object.keys(nodes).length, 9)
   })
 
-  describe('defaultSelectorKey', () => {
+  suite('defaultSelectorKey', () => {
     test('it names the nodes based on their string name by default', () => {
       createMockSelectors()
       const { nodes } = selectorGraph()
 
       // comes from func.name for top-level vanilla selector functions.
-      expect(nodes['data$'].recomputations).equal(null)
+      expect(nodes['data$']?.recomputations).equal(null)
       // assert.equal(nodes['data$'].recomputations, null)
     })
 
@@ -403,9 +446,11 @@ describe('selectorGraph', () => {
 
     test('it creates numeric names for unregistered selectors', () => {
       const foo$ = createSelector(() => 'foo')
+      // @ts-expect-error
       const unregistered$ = createSelector(foo$, () => 1)
       const registered$ = createSelector(unregistered$, () => 3)
 
+      // @ts-expect-error
       registerSelectors({ registered$, foo$ })
       const { nodes } = selectorGraph()
       const keys = Object.keys(nodes)
@@ -413,14 +458,19 @@ describe('selectorGraph', () => {
       // assert.equal(keys.length, 3)
 
       // please let's do better!
-      assert.isDefined(nodes['function () {\n        return 1;\n      }22074'])
-      expect(
-        nodes['function () {\n        return 1;\n      }22074']
-      ).toBeDefined()
+      // assert.isDefined(nodes['function () {\n        return 1;\n      }22074'])
+      // Replace with:
+      assert.isDefined(nodes['memoized']) // In reselect v5.0.0-alpha.2 the anonymous function has been given the name `memoized`.
+      // expect(
+      //   nodes['function () {\n        return 1;\n      }22074']
+      // ).toBeDefined()
     })
 
     test("doesn't duplicate nodes if they are different", () => {
-      const foo$ = state => state.foo // node1
+      interface State {
+        foo: number
+      }
+      const foo$ = (state: State) => state.foo // node1
       const select = () => 1 // node 2
       createSelector(foo$, select)
       createSelector(select) // node 3
