@@ -1,0 +1,57 @@
+{
+  "env": {
+    "browser": true,
+    "node": true,
+    "mocha": true,
+    "es6": true,
+    "es2024": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:@typescript-eslint/stylistic-type-checked",
+    "plugin:@typescript-eslint/strict-type-checked",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["prettier"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "project": true,
+    "sourceType": "module",
+    "tsconfigRootDir": "./"
+  },
+  "ignorePatterns": ["node_modules", ".vscode", "build", "dist", ".git"],
+  "rules": {
+    "array-bracket-spacing": [0, "always"],
+    "eol-last": [2],
+    "indent": [2, 2, { "SwitchCase": 1 }],
+    "no-multiple-empty-lines": [2],
+    "object-curly-spacing": [2, "always"],
+    "quotes": [
+      2,
+      "single",
+      { "avoidEscape": true, "allowTemplateLiterals": true }
+    ],
+    "semi": [2, "never"],
+    "strict": [0],
+    "space-before-blocks": [2, "always"],
+    "space-before-function-paren": [
+      2,
+      { "anonymous": "always", "named": "never" }
+    ],
+    "prettier/prettier": [
+      2,
+      {
+        "semi": false,
+        "singleQuote": true,
+        "tabWidth": 2,
+        "trailingComma": "none",
+        "arrowParens": "avoid"
+      }
+    ],
+    "@typescript-eslint/consistent-type-imports": [2],
+    "@typescript-eslint/ban-ts-comment": [0],
+    "@typescript-eslint/no-non-null-assertion": [0]
+  }
+}

@@ -2,8 +2,23 @@
   "name": "reselect-tools",
   "version": "0.0.7",
   "description": "Selector Debugging Tools for Reselect.",
-  "main": "lib/index.js",
+  "main": "./dist/cjs/index.cjs",
   "jsnext:main": "es/index.js",
+  "module": "./dist/reselect-tools.legacy-esm.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "default": "./dist/reselect-tools.mjs",
+        "types": "./dist/reselect-tools.d.mts"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    }
+  },
   "files": [
     "lib",
     "src",
@@ -15,16 +30,19 @@
   },
   "scripts": {
     "compile:commonjs": "better-npm-run compile:commonjs",
-    "compile:umdmin": "uglifyjs dist/reselect-tools.js -mt -o dist/reselect-tools.min.js",
+    "compile:umdmin": "uglifyjs dist/reselect-tools.js -m -o dist/reselect-tools.min.js",
     "compile:umd": "better-npm-run compile:umd",
     "compile:es": "babel -d es/ src/",
     "compile": "npm run compile:commonjs && npm run compile:umd && npm run compile:umdmin && npm run compile:es",
     "lint": "eslint src test",
+    "clean": "rimraf dist",
     "lint-fix": "eslint --fix src test",
-    "prepublish": "npm run compile",
-    "test": "better-npm-run test",
+    "prepublish": "npm run build",
+    "test": "vitest",
     "test:cov": "better-npm-run test:cov",
-    "example": "opn http://localhost:9080/examples/demo.html && static-server"
+    "example": "opn http://localhost:9080/examples/demo.html && static-server",
+    "type-check": "tsc -b tsconfig.json",
+    "build": "tsup"
   },
   "betterScripts": {
     "test": {
@@ -66,24 +84,33 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "^6.7.5",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.7.4",
-    "babel-plugin-transform-es2015-modules-umd": "^6.6.5",
-    "babel-preset-env": "^1.6.1",
-    "babel-register": "^6.7.2",
-    "better-npm-run": "0.0.8",
-    "chai": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "babel-plugin-transform-es2015-modules-umd": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "better-npm-run": "0.1.1",
+    "chai": "^5.0.3",
     "codecov.io": "^0.1.6",
-    "coveralls": "^2.11.4",
-    "eslint": "^2.11",
-    "mkdirp": "^0.5.1",
-    "mocha": "^2.2.5",
+    "coveralls": "^3.1.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.1.3",
+    "mkdirp": "^3.0.1",
+    "mocha": "^10.3.0",
     "ncp": "^2.0.0",
-    "nyc": "^6.4.0",
-    "opn-cli": "^3.1.0",
-    "uglify-js": "^3.0.20"
+    "nyc": "^15.1.0",
+    "opn-cli": "^4.1.0",
+    "prettier": "^3.2.5",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "uglify-js": "^3.17.4",
+    "vitest": "^1.2.2"
   },
   "dependencies": {
-    "reselect": "4.0.0"
+    "reselect": "5.1.0"
   }
 }
