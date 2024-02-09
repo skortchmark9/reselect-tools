@@ -1,25 +1,19 @@
-import type { OutputSelectorFields, Selector, SelectorArray } from 'reselect'
+import type { Selector, SelectorArray } from 'reselect'
 import type { checkSelector, selectorGraph } from './index'
 
 /**
  * Any function with arguments.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyFunction = (...args: any[]) => unknown
-/**
- * A memoized selector created by calling reselect's `createSelector`.
- */
-export type ResultSelector = Selector &
-  Partial<OutputSelectorFields<AnyFunction, unknown>>
-/**
- * A key value pair object where the keys are selector names and the values are the selectors themselves.
- */
-export type SelectorsObject = Record<string, RegisteredSelector>
+export type AnyFunction = (...args: any[]) => any
 /**
  * A selector that has been registered using `registerSelectors`.
  */
-export type RegisteredSelector = ResultSelector & {
+export type RegisteredSelector = Selector & {
+  dependencies?: SelectorArray
   selectorName?: string
+  recomputations?: () => number
+  resultFunc?: AnyFunction
 }
 
 export interface Extra {

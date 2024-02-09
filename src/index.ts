@@ -1,12 +1,11 @@
-import type { Selector } from 'reselect'
+import type { Selector, SelectorArray, SelectorsObject } from 'reselect'
 import { createSelector } from 'reselect'
 import type {
   AnyFunction,
   CheckSelectorResults,
   Extra,
   Graph,
-  RegisteredSelector,
-  SelectorsObject
+  RegisteredSelector
 } from './types'
 export type {
   AnyFunction,
@@ -15,9 +14,7 @@ export type {
   Extra,
   Graph,
   Node,
-  RegisteredSelector,
-  ResultSelector,
-  SelectorsObject
+  RegisteredSelector
 } from './types'
 
 let _getState: (() => unknown) | null = null
@@ -40,7 +37,9 @@ const _isSelector = (selector: unknown): selector is Selector =>
   (!!selector && typeof selector === 'object' && 'resultFunc' in selector) ||
   _isFunction(selector)
 
-const _addSelector = <S extends RegisteredSelector>(selector: S) => {
+const _addSelector = (
+  selector: Selector & { dependencies?: SelectorArray }
+) => {
   _allSelectors.add(selector)
 
   const dependencies = selector.dependencies ?? []
@@ -50,11 +49,11 @@ const _addSelector = <S extends RegisteredSelector>(selector: S) => {
  * Adds named selectors to the graph. It sets selector names as keys and selectors as values.
  * @param selectors A key value pair object where the keys are selector names and the values are the selectors themselves.
  */
-export function registerSelectors<S extends SelectorsObject>(selectors: S) {
+export function registerSelectors(selectors: SelectorsObject) {
   Object.keys(selectors).forEach(name => {
     const selector = selectors[name]
     if (_isSelector(selector)) {
-      selector.selectorName = name
+      Object.assign(selector, { selectorName: name })
       _addSelector(selector)
     }
   })
@@ -130,7 +129,7 @@ export function checkSelector(selector: RegisteredSelector | string) {
  * Accepts a function which returns the current state. This state is then passed into `checkSelector`. In most cases, this will be `store.getState()`
  * @param stateGetter A function which returns the current state.
  */
-export function getStateWith<T extends AnyFunction | null>(stateGetter: T) {
+export function getStateWith(stateGetter: AnyFunction | null) {
   _getState = stateGetter
 }
 
